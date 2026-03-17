@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'edit_profile.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -34,7 +35,9 @@ class ProfileScreen extends StatelessWidget {
             ),
             const SizedBox(height: 30),
             const Divider(),
-            _buildProfileOption(Icons.edit, 'Edit Profile', () {}),
+            _buildProfileOption(Icons.edit, 'Edit Profile', () {
+              Get.to(() => const EditProfileScreen());
+            }),
             _buildProfileOption(Icons.history, 'Rental History', () {}),
             _buildProfileOption(Icons.payment, 'Payment Methods', () {}),
             _buildProfileOption(Icons.settings, 'Settings', () {}),

@@ -9,127 +9,122 @@ class ProductsScreen extends StatelessWidget {
       'name': 'Yamaha DM7 Digital Mixer',
       'price': 'Ksh 124,999/day',
       'category': 'Audio',
-      'icon': Icons.speaker,
+      'image': 'assets/yamaha dm7.jpeg',
     },
     {
       'name': 'Epson 4K Projector',
       'price': 'Ksh 9,999/day',
       'category': 'Visual',
-      'icon': Icons.videocam,
+      'image': 'assets/epson projector.jpg',
     },
     {
       'name': 'Shure SLXD Wireless Microphone System',
       'price': 'Ksh 6,499/day',
       'category': 'Audio',
-      'icon': Icons.mic,
+      'image': "assets/slxd+.jpg",
     },
     {
       'name': 'LED Stage Lights Package',
       'price': 'Ksh 5,999 - Ksh 499,999/day',
       'category': 'Lighting',
-      'icon': Icons.lightbulb,
+      'image': 'assets/led stage lights.jpg',
     },
     {
       'name': 'Pioneer CDJ 3000 Controller',
       'price': 'Ksh 20,499/day',
       'category': 'Audio',
-      'icon': Icons.album,
+      'image': 'assets/CDJ-3000_angle.jpeg',
     },
     {
       'name': '120" Projection Screen',
       'price': 'Ksh 29,999/day',
       'category': 'Visual',
-      'icon': Icons.fit_screen,
+      'image': 'assets/120 projectorscreen.jpg',
     },
     {
       'name': 'Allen & Heath dLive S7000 Surface',
       'price': 'Ksh 150,000/day',
       'category': 'Audio',
-      'icon': Icons.tune,
+      'image':
+          'assets/xAllen-Heath-dLive-S7000-and-CDM32-Package-768x768.jpg.pagespeed.ic.E-4kLBWTUA.jpg',
     },
     {
       'name': 'DiGiCo Quantum 338 Console',
       'price': 'Ksh 250,000/day',
       'category': 'Audio',
-      'icon': Icons.tune,
+      'image': 'assets/Q338-Pulse-Angle-for-Web1-1200x750.jpg',
     },
     {
       'name': 'd&b audiotechnik J-Series Line Array',
       'price': 'Ksh 350,000/day',
       'category': 'Audio',
-      'icon': Icons.speaker,
+      'image': 'assets/d&b audiotechnik.jpg',
     },
     {
       'name': 'dBTechnologies VIO L212',
       'price': 'Ksh 180,000/day',
       'category': 'Audio',
-      'icon': Icons.speaker,
+      'image': 'assets/d&b audiotechnik.jpg',
     },
     {
       'name': 'Allen & Heath DX168 Stage Box',
       'price': 'Ksh 15,000/day',
       'category': 'Accessories',
-      'icon': Icons.dns,
+      'image': 'assets/DX168-Hero-1.jpg',
     },
     {
       'name': 'DiGiCo SD-Rack (32 In / 16 Out)',
       'price': 'Ksh 95,000/day',
       'category': 'Accessories',
-      'icon': Icons.dns,
+      'image': 'assets/SD_Mini_Rack_1-1-1200x750-1.png',
     },
     {
       'name': 'Premium XLR Cable Bundle (50m)',
       'price': 'Ksh 3,500/day',
       'category': 'Accessories',
-      'icon': Icons.cable,
+      'image': 'assets/XLR.png',
     },
     {
       'name': 'Sennheiser EW-DX Wireless System',
       'price': 'Ksh 8,000/day',
       'category': 'Audio',
-      'icon': Icons.mic,
+      'image': 'assets/EWE-DX Mics Dante.png',
     },
     {
       'name': 'Shure PSM1000 In-Ear Monitor System',
       'price': 'Ksh 12,000/day',
       'category': 'Audio',
-      'icon': Icons.headphones,
+      'image': 'assets/PSM 1000.jpg',
     },
     {
       'name': 'MA Lighting grandMA3 compact Console',
       'price': 'Ksh 65,000/day',
       'category': 'Lighting',
-      'icon': Icons.light,
+      'image': 'assets/GrandMA3.png',
     },
     {
-      'name': 'Absen 2.9mm LED Video Wall (per sqm)',
+      'name': 'Absen 2.9mm SA-C Flexible Displays (per sqm)',
       'price': 'Ksh 15,000/day',
       'category': 'Visual',
-      'icon': Icons.monitor,
+      'image': 'assets/sa-series-1920X900-sa-series-1920X900LED panels.jpg',
     },
     {
-      'name': 'Blackmagic ATEM Television Studio HD',
-      'price': 'Ksh 10,000/day',
+      'name': 'Blackmagic ATEM Television Studio 4K8',
+      'price': 'Ksh 19,999/day',
       'category': 'Visual',
-      'icon': Icons.switch_video,
+      'image': 'assets/ATEM Television studio 4K8.jpg',
     },
     {
       'name': 'Sony FX6 Cinema Camera',
       'price': 'Ksh 25,000/day',
       'category': 'Visual',
-      'icon': Icons.camera_alt,
+      'image': 'assets/Sony FX6.jpg',
     },
     {
-      'name': 'ClearCom FreeSpeak II Wireless Intercom',
-      'price': 'Ksh 18,000/day',
+      'name': 'Hollyland Solidcom M1 Pro Wireless Intercom',
+      'price': 'Ksh 29,999/day',
       'category': 'Accessories',
-      'icon': Icons.headset_mic,
-    },
-    {
-      'name': 'Global Truss F34 (3m section)',
-      'price': 'Ksh 1,500/day',
-      'category': 'Accessories',
-      'icon': Icons.grid_4x4,
+      'image': 'assets/Hollylans Solidcom M1 Pro.png',
     },
   ];
 
@@ -168,14 +163,25 @@ class ProductsScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.grey.shade100,
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(12),
-                ),
+            child: ClipRRect(
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(12),
               ),
-              child: Icon(product['icon'], size: 54, color: Colors.blueGrey),
+              child: Image.asset(
+                product['image'],
+                fit: BoxFit.cover,
+                width: double.infinity,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    color: Colors.grey.shade200,
+                    child: const Icon(
+                      Icons.image_not_supported,
+                      size: 50,
+                      color: Colors.grey,
+                    ),
+                  );
+                },
+              ),
             ),
           ),
           Padding(
