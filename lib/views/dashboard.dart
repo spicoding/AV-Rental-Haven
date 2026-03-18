@@ -93,6 +93,24 @@ class DashboardScreen extends StatelessWidget {
                     icon: Icons.contact_support_rounded,
                     iconColor: Colors.green,
                   ),
+                  const SizedBox(height: 20),
+                  _buildInfoCard(
+                    title: 'Why Choose Us',
+                    content:
+                        'We provide industry-leading equipment, competitive pricing, and 24/7 technical support to ensure your event is a seamless success.',
+                    icon: Icons.star_rounded,
+                    iconColor: Colors.orange,
+                  ),
+                  const SizedBox(height: 20),
+                  _buildInfoCard(
+                    title: 'Business Hours',
+                    content:
+                        'Monday - Friday: 8:00 AM - 6:00 PM\n'
+                        'Saturday: 9:00 AM - 4:00 PM\n'
+                        'Sunday: Closed (Available for emergency support)',
+                    icon: Icons.access_time_filled_rounded,
+                    iconColor: Colors.purple,
+                  ),
                   const SizedBox(height: 30),
                 ],
               ),
