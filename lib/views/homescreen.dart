@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'dashboard.dart';
 import 'products.dart';
 import 'profile.dart';
+import 'orders.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -17,7 +18,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final List<Widget> _pages = [
     const DashboardScreen(),
     ProductsScreen(),
-    const Center(child: Text('Orders/Lines coming soon!')),
+    OrdersScreen(),
     const ProfileScreen(),
   ];
 

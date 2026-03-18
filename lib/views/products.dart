@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'orders.dart';
 
 class ProductsScreen extends StatelessWidget {
   ProductsScreen({super.key});
+
+  final OrderController orderController = Get.put(OrderController());
 
   // Mock data for our product catalog
   final List<Map<String, dynamic>> products = [
@@ -9,7 +13,7 @@ class ProductsScreen extends StatelessWidget {
       'name': 'Yamaha DM7 Digital Mixer',
       'price': 'Ksh 124,999/day',
       'category': 'Audio',
-      'image': 'assets/yamaha dm7.jpeg',
+      'image': 'assets/yamaha dm7.jpg',
     },
     {
       'name': 'Epson 4K Projector',
@@ -135,6 +139,24 @@ class ProductsScreen extends StatelessWidget {
         title: const Text('Product Selections'),
         backgroundColor: const Color.fromARGB(255, 255, 0, 0),
         foregroundColor: const Color.fromARGB(255, 255, 255, 255),
+        actions: [
+          Obx(
+            () => IconButton(
+              icon: Badge(
+                label: Text(orderController.orders.length.toString()),
+                isLabelVisible: orderController.orders.isNotEmpty,
+                child: const Icon(Icons.shopping_cart),
+              ),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => OrdersScreen()),
+                );
+              },
+            ),
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(12.0),
@@ -156,84 +178,251 @@ class ProductsScreen extends StatelessWidget {
   }
 
   Widget _buildProductCard(Map<String, dynamic> product) {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Expanded(
-            child: ClipRRect(
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(12),
-              ),
-              child: Image.asset(
-                product['image'],
-                fit: BoxFit.cover,
-                width: double.infinity,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    color: Colors.grey.shade200,
-                    child: const Icon(
-                      Icons.image_not_supported,
-                      size: 50,
-                      color: Colors.grey,
-                    ),
-                  );
-                },
-              ),
+    return ProductCardItem(product: product);
+  }
+}
+
+class ProductCardItem extends StatefulWidget {
+  final Map<String, dynamic> product;
+
+  const ProductCardItem({super.key, required this.product});
+
+  @override
+  State<ProductCardItem> createState() => _ProductCardItemState();
+}
+
+class _ProductCardItemState extends State<ProductCardItem> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) =>
+                  ProductDetailsScreen(product: widget.product),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(12.0),
+          );
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          transform: Matrix4.identity()..scale(_isHovered ? 1.03 : 1.0),
+          child: Card(
+            elevation: _isHovered ? 8 : 4,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(
-                  product['category'],
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Color.fromARGB(255, 130, 29, 9),
-                    fontWeight: FontWeight.bold,
+                Expanded(
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(12),
+                    ),
+                    child: Image.asset(
+                      widget.product['image'],
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          color: Colors.grey.shade200,
+                          child: const Icon(
+                            Icons.image_not_supported,
+                            size: 50,
+                            color: Colors.grey,
+                          ),
+                        );
+                      },
+                    ),
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  product['name'],
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  product['price'],
-                  style: const TextStyle(fontSize: 14, color: Colors.black87),
-                ),
-                const SizedBox(height: 8),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {},
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color.fromARGB(255, 255, 0, 0),
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.product['category'],
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Color.fromARGB(255, 130, 29, 9),
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    child: const Text(
-                      'Rent Now',
-                      style: TextStyle(fontSize: 12),
-                    ),
+                      const SizedBox(height: 4),
+                      Text(
+                        widget.product['name'],
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        widget.product['price'],
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ProductDetailsScreen(
+                                  product: widget.product,
+                                ),
+                              ),
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color.fromARGB(
+                              255,
+                              255,
+                              0,
+                              0,
+                            ),
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: const Text(
+                            'Order Now',
+                            style: TextStyle(fontSize: 12),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
           ),
-        ],
+        ),
+      ),
+    );
+  }
+}
+
+class ProductDetailsScreen extends StatelessWidget {
+  final Map<String, dynamic> product;
+
+  const ProductDetailsScreen({super.key, required this.product});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(product['name']),
+        backgroundColor: const Color.fromARGB(255, 255, 0, 0),
+        foregroundColor: const Color.fromARGB(255, 255, 255, 255),
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Image.asset(
+              product['image'],
+              width: double.infinity,
+              height: 300,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  height: 300,
+                  color: Colors.grey.shade200,
+                  child: const Center(
+                    child: Icon(
+                      Icons.image_not_supported,
+                      size: 50,
+                      color: Colors.grey,
+                    ),
+                  ),
+                );
+              },
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    product['category'],
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: Color.fromARGB(255, 130, 29, 9),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    product['name'],
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    product['price'],
+                    style: const TextStyle(fontSize: 20, color: Colors.black87),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Product Description',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Experience top-tier performance with the ${product['name']}. '
+                    'Perfect for your ${product['category'].toLowerCase()} needs, ensuring high quality and reliability for your events. '
+                    'Order it today for only ${product['price']}!',
+                    style: const TextStyle(fontSize: 16, height: 1.5),
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Get.find<OrderController>().addOrder(product);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Added to your orders!'),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color.fromARGB(255, 255, 0, 0),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: const Text(
+                        'Confirm Order',
+                        style: TextStyle(fontSize: 18),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
