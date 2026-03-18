@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/configs/colors.dart';
+import 'package:flutter_application_1/controllers/logincontroller.dart';
 import 'package:get/get.dart';
+
+LoginController loginController = Get.put(LoginController());
+
+TextEditingController usernameController = TextEditingController();
+TextEditingController passwordController = TextEditingController();
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -37,6 +43,7 @@ class _LoginPageState extends State<LoginPage> {
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
               child: TextField(
+                controller: usernameController,
                 decoration: InputDecoration(
                   hintText: "Email or Phone Number",
                   border: OutlineInputBorder(
@@ -62,24 +69,27 @@ class _LoginPageState extends State<LoginPage> {
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
               child: TextField(
-                obscureText: !_isPasswordVisible,
+                controller: passwordController,
+                obscureText: loginController.passwordVisible.value,
                 decoration: InputDecoration(
                   hintText: "PIN or Password",
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(20),
                   ),
                   prefixIcon: const Icon(Icons.lock),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _isPasswordVisible
-                          ? Icons.visibility
-                          : Icons.visibility_off,
+                  suffixIcon: GestureDetector(
+                    child: IconButton(
+                      icon: Icon(
+                        _isPasswordVisible
+                            ? Icons.visibility
+                            : Icons.visibility_off,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _isPasswordVisible = !_isPasswordVisible;
+                        });
+                      },
                     ),
-                    onPressed: () {
-                      setState(() {
-                        _isPasswordVisible = !_isPasswordVisible;
-                      });
-                    },
                   ),
                 ),
               ),
@@ -103,7 +113,21 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
               onTap: () {
-                Get.offAndToNamed("/homescreen");
+                bool success = loginController.login(
+                  usernameController.text,
+                  passwordController.text,
+                );
+                if (success) {
+                  Get.offAndToNamed("/homescreen");
+                } else {
+                  Get.snackbar(
+                    "Login Failed",
+                    "Check your credentials and then try again.",
+                    backgroundColor: Colors.red,
+                    colorText: Colors.white,
+                  );
+                }
+                // Get.offAndToNamed("/homescreen");
               },
             ),
             const SizedBox(height: 20),
