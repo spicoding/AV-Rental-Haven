@@ -27,7 +27,8 @@ class _LoginPageState extends State<LoginPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset("assets/images.png", width: 200),
+            Image.asset("assets/images.png", width: 150),
+            const SizedBox(height: 20),
             Padding(
               padding: const EdgeInsets.fromLTRB(25, 0, 20, 5),
               child: Row(
@@ -41,7 +42,7 @@ class _LoginPageState extends State<LoginPage> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
               child: TextField(
                 controller: usernameController,
                 decoration: InputDecoration(
@@ -68,30 +69,26 @@ class _LoginPageState extends State<LoginPage> {
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
-              child: Obx(
-                () => TextField(
-                  controller: passwordController,
-                  obscureText: loginController.passwordVisible.value,
-                  decoration: InputDecoration(
-                    hintText: "PIN or Password",
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(20),
+              child: TextField(
+                controller: passwordController,
+                obscureText: !_isPasswordVisible,
+                decoration: InputDecoration(
+                  hintText: "PIN or Password",
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  prefixIcon: const Icon(Icons.lock),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _isPasswordVisible
+                          ? Icons.visibility
+                          : Icons.visibility_off,
                     ),
-                    prefixIcon: const Icon(Icons.lock),
-                    suffixIcon: GestureDetector(
-                      child: IconButton(
-                        icon: Icon(
-                          _isPasswordVisible
-                              ? Icons.visibility
-                              : Icons.visibility_off,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _isPasswordVisible = !_isPasswordVisible;
-                          });
-                        },
-                      ),
-                    ),
+                    onPressed: () {
+                      setState(() {
+                        _isPasswordVisible = !_isPasswordVisible;
+                      });
+                    },
                   ),
                 ),
               ),

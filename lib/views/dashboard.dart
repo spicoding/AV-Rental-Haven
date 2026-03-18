@@ -6,46 +6,96 @@ class DashboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: const Text('AV Rentals'),
-        backgroundColor: const Color.fromARGB(255, 255, 10, 2),
+        title: const Text(
+          'AV Rentals',
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
+        backgroundColor: const Color(0xFFD32F2F),
         foregroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const SizedBox(height: 20),
-            // const Icon(
-            //   Icons.info_outline,
-            //   size: 80,
-            //   color: Color.fromARGB(255, 255, 34, 0),
-            // ),
-            const SizedBox(height: 16),
-            const Text(
-              'AV Rental Haven',
-              style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.only(
+                bottom: 40,
+                left: 20,
+                right: 20,
+                top: 20,
+              ),
+              decoration: const BoxDecoration(
+                color: Color(0xFFD32F2F),
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(40),
+                  bottomRight: Radius.circular(40),
+                ),
+              ),
+              child: Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Image.asset(
+                      "assets/images.png",
+                      width: 80,
+                      height: 80,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    'AV Rental Haven',
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Your premium destination for top-tier audio and visual equipment rentals.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: Colors.white70,
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 8),
-            const Text(
-              'Your premium destination for top-tier audio and visual equipment rentals.',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 16, color: Colors.grey),
-            ),
-            const SizedBox(height: 32),
-            _buildInfoCard(
-              title: 'Our Mission',
-              content:
-                  'To empower events of all sizes with crystal clear audio and stunning visuals by providing accessible, reliable, and high-quality equipment to our clients.',
-              icon: Icons.flag,
-            ),
-            const SizedBox(height: 16),
-            _buildInfoCard(
-              title: 'Contact Us',
-              content:
-                  'Email: support@avrentalhaven.com\nPhone: +254 768398483\nAddress: ASK House off Ngong Road, 3rd Floor, Nairobi, Kenya',
-              icon: Icons.contact_mail,
+            const SizedBox(height: 30),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              child: Column(
+                children: [
+                  _buildInfoCard(
+                    title: 'Our Mission',
+                    content:
+                        'To empower events of all sizes with crystal clear audio and stunning visuals by providing accessible, reliable, and high-quality equipment to our clients.',
+                    icon: Icons.flag_rounded,
+                    iconColor: Colors.blueAccent,
+                  ),
+                  const SizedBox(height: 20),
+                  _buildInfoCard(
+                    title: 'Contact Us',
+                    content:
+                        'Email: support@avrentalhaven.com\nPhone: +254 768398483\nAddress: ASK House off Ngong Road, 3rd Floor, Nairobi, Kenya',
+                    icon: Icons.contact_support_rounded,
+                    iconColor: Colors.green,
+                  ),
+                  const SizedBox(height: 30),
+                ],
+              ),
             ),
           ],
         ),
@@ -57,17 +107,35 @@ class DashboardScreen extends StatelessWidget {
     required String title,
     required String content,
     required IconData icon,
+    required Color iconColor,
   }) {
-    return Card(
-      elevation: 3,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.15),
+            spreadRadius: 2,
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(20.0),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(icon, size: 32, color: const Color.fromARGB(255, 252, 0, 0)),
-            const SizedBox(width: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: iconColor.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, size: 28, color: iconColor),
+            ),
+            const SizedBox(width: 20),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -75,14 +143,19 @@ class DashboardScreen extends StatelessWidget {
                   Text(
                     title,
                     style: const TextStyle(
-                      fontSize: 18,
+                      fontSize: 19,
                       fontWeight: FontWeight.bold,
+                      color: Colors.black87,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 10),
                   Text(
                     content,
-                    style: const TextStyle(fontSize: 14, height: 1.5),
+                    style: const TextStyle(
+                      fontSize: 14,
+                      height: 1.5,
+                      color: Colors.black54,
+                    ),
                   ),
                 ],
               ),
