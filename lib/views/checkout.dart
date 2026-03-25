@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'orders.dart';
+import 'payment.dart';
 
 class CheckoutScreen extends StatelessWidget {
   const CheckoutScreen({super.key});
@@ -65,16 +66,11 @@ class CheckoutScreen extends StatelessWidget {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  // Move orders to history and clear current orders simulating a successful transaction
-                  controller.rentalHistory.addAll(controller.orders);
-                  controller.orders.clear();
-                  Navigator.pop(context); // Go back to the orders screen
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Order placed successfully!'),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
+                // Navigate to the payment processing screen
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const PaymentScreen()),
+                );
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color.fromARGB(255, 255, 0, 0),
