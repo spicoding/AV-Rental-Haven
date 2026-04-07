@@ -68,9 +68,25 @@ class CheckoutScreen extends StatelessWidget {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () async {
-                  // Send data to MySQL via the PHP API
+                  // Map the cart items to match your MySQL database fields
+                  final databaseReadyOrders = controller.orders.map((item) {
+                    return {
+                      "location":
+                          "Main Campus", // Replace with actual location logic
+                      "user_id": 1, // Replace with actual logged-in user ID
+                      "payment_id":
+                          "PAY-${DateTime.now().millisecondsSinceEpoch}",
+                      // Clean the price string (remove '$' or 'KES') to send as amount
+                      "amount": item['price'].replaceAll(
+                        RegExp(r'[^0-9.]'),
+                        '',
+                      ),
+                    };
+                  }).toList();
+
+                  // Send transformed data to MySQL via the PHP API
                   bool success = await apiService.submitOrder(
-                    controller.orders,
+                    databaseReadyOrders,
                   );
 
                   if (success) {
