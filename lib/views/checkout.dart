@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'orders.dart';
 import 'payment.dart';
+import '../services/api_service.dart';
 
 class CheckoutScreen extends StatelessWidget {
   const CheckoutScreen({super.key});
@@ -10,6 +11,7 @@ class CheckoutScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     // Retrieve the existing controller to access the orders
     final OrderController controller = Get.find<OrderController>();
+    final ApiService apiService = ApiService();
 
     return Scaffold(
       appBar: AppBar(
@@ -65,12 +67,31 @@ class CheckoutScreen extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {
-                // Navigate to the payment processing screen
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const PaymentScreen()),
-                );
+                onPressed: () async {
+                  // Send data to MySQL via the PHP API
+                  bool success = await apiService.submitOrder(
+                    controller.orders,
+                  );
+
+                  if (success) {
+                    if (context.mounted) {
+                      // Navigate to the payment processing screen
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const PaymentScreen(),
+                        ),
+                      );
+                    }
+                  } else {
+                    Get.snackbar(
+                      'Database Error',
+                      'Failed to link with MySQL. Ensure XAMPP is running and the API is accessible.',
+                      snackPosition: SnackPosition.BOTTOM,
+                      backgroundColor: Colors.red,
+                      colorText: Colors.white,
+                    );
+                  }
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color.fromARGB(255, 255, 0, 0),
