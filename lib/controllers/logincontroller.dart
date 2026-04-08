@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../services/api_service.dart';
 import '../views/orders.dart';
 import '../views/homescreen.dart';
+import '../models/user_model.dart';
 
 class LoginController extends GetxController {
   final ApiService _apiService = ApiService();
@@ -27,9 +28,11 @@ class LoginController extends GetxController {
     isLoading.value = false;
 
     if (response['status'] == 'success') {
-      _orderController.currentUserId.value = int.parse(
-        response['user_id'].toString(),
-      );
+      // Capture full user details from the response
+      final user = User.fromJson(response);
+      _orderController.currentUser.value = user;
+      _orderController.currentUserId.value = user.id ?? 0;
+
       Get.snackbar("Success", "Welcome back!");
       Get.offAll(() => const HomeScreen());
     } else {

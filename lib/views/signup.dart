@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application_1/configs/colors.dart';
 import 'package:flutter_application_1/controllers/signupcontroller.dart';
 import 'package:get/get.dart';
+import '../models/user_model.dart'; // Import User model
 import '../services/api_service.dart';
 
 SignUpController signUpController = Get.put(SignUpController());
@@ -56,7 +57,14 @@ class _SignupPageState extends State<SignupPage> {
     setState(() => _isLoading = false);
 
     if (response['status'] == 'success') {
-      Get.snackbar("Success", "Account created! Please log in.");
+      Get.snackbar(
+        "Success",
+        "Account created for ${response['full_name']}! Please log in.",
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 3),
+      );
+      // Redirect to login page
       Get.toNamed("/login");
     } else {
       Get.snackbar(

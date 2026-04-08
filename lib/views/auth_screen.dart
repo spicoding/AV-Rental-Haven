@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../services/api_service.dart';
 import 'orders.dart';
+import '../models/user_model.dart';
 import 'homescreen.dart';
 
 class AuthScreen extends StatefulWidget {
@@ -60,9 +61,9 @@ class _AuthScreenState extends State<AuthScreen> {
         Get.snackbar("Success", "Account created! Please log in.");
       } else {
         // Successful login: Update user ID and return
-        _orderController.currentUserId.value = int.parse(
-          response['user_id'].toString(),
-        );
+        final user = User.fromJson(response);
+        _orderController.currentUser.value = user;
+        _orderController.currentUserId.value = user.id ?? 0;
 
         Get.snackbar("Success", "Welcome back!");
         Get.offAll(

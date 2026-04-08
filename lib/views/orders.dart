@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../services/api_service.dart';
 import '../models/product_model.dart';
 import '../models/cart_item_model.dart';
+import '../models/user_model.dart';
 import 'checkout.dart';
 
 class OrderController extends GetxController {
@@ -11,6 +12,8 @@ class OrderController extends GetxController {
   final ApiService _apiService = ApiService();
   var isLoading = false.obs;
   var currentUserId = 0.obs; // Start as 0 (logged out)
+  var currentUser =
+      Rxn<User>(); // Stores logged-in user details for the profile
   var rentalHistory =
       <dynamic>[].obs; // Added to fix rental_history.dart errors
 

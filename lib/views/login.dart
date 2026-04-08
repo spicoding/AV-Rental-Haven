@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application_1/configs/colors.dart';
 import 'package:flutter_application_1/controllers/logincontroller.dart';
 import 'package:get/get.dart';
-import 'orders.dart'; // Import to access OrderController
+import 'orders.dart'; // Import to access OrderController (already imported in LoginController)
 
 // Ensure OrderController is initialized before LoginController since LoginController depends on it
 final OrderController _orderController = Get.put(OrderController());
@@ -86,19 +86,19 @@ class _LoginPageState extends State<LoginPage> {
                     ],
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
-                  child: TextField(
-                    controller: _passwordController,
-                    obscureText: loginController.isObscured.value,
-                    decoration: InputDecoration(
-                      hintText: "PIN or Password",
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      prefixIcon: const Icon(Icons.lock),
-                      suffixIcon: Obx(
-                        () => IconButton(
+                Obx(
+                  () => Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+                    child: TextField(
+                      controller: _passwordController,
+                      obscureText: loginController.isObscured.value,
+                      decoration: InputDecoration(
+                        hintText: "PIN or Password",
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        prefixIcon: const Icon(Icons.lock),
+                        suffixIcon: IconButton(
                           icon: Icon(
                             loginController.isObscured.value
                                 ? Icons.visibility_off
@@ -107,12 +107,13 @@ class _LoginPageState extends State<LoginPage> {
                           onPressed: () {
                             loginController.togglePassword();
                           },
-                        ),
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(height: 20),
+               
+              
+               const SizedBox(height: 20),
                 GestureDetector(
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
@@ -158,7 +159,9 @@ class _LoginPageState extends State<LoginPage> {
                           color: primaryColor,
                           fontWeight: FontWeight.bold,
                         ),
+                      
                       ),
+                      
                       onTap: () {
                         Get.toNamed("/signup");
                       },

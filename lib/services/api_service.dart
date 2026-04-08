@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import '../models/product_model.dart';
+import '../models/user_model.dart'; // Import User model
 
 class ApiService {
   // Use '10.0.2.2' for Android Emulator to refer to your PC's localhost.
@@ -14,6 +15,7 @@ class ApiService {
     String email,
     String password,
   ) async {
+    // This method returns Map<String, dynamic> which includes user details
     try {
       final response = await http
           .post(
@@ -47,6 +49,7 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> loginUser(String email, String password) async {
+    // This method returns Map<String, dynamic> which includes user details
     try {
       final response = await http
           .post(
