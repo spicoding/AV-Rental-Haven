@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../services/api_service.dart';
 import 'orders.dart';
+import 'homescreen.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -21,6 +22,7 @@ class _AuthScreenState extends State<AuthScreen> {
 
   bool _isLogin = true;
   bool _isLoading = false;
+  bool _obscurePassword = true;
 
   void _submit() async {
     if (!_formKey.currentState!.validate()) return;
@@ -44,13 +46,22 @@ class _AuthScreenState extends State<AuthScreen> {
     setState(() => _isLoading = false);
 
     if (response['status'] == 'success') {
-      // Update the OrderController with the logged-in user's ID
-      _orderController.currentUserId.value = int.parse(
-        response['user_id'].toString(),
-      );
+      if (!_isLogin) {
+        // Redirect to Login state after successful signup
+        setState(() => _isLogin = true);
+        _passwordController.clear();
+        Get.snackbar("Success", "Account created! Please log in.");
+      } else {
+        // Successful login: Update user ID and return
+        _orderController.currentUserId.value = int.parse(
+          response['user_id'].toString(),
+        );
 
-      Get.snackbar("Success", _isLogin ? "Welcome back!" : "Account created!");
-      Get.back(); // Return to the previous screen (like Checkout)
+        Get.snackbar("Success", "Welcome back!");
+        Get.offAll(
+          () => const HomeScreen(),
+        ); // Direct to HomeScreen after login
+      }
     } else {
       Get.snackbar(
         "Error",
@@ -97,8 +108,19 @@ class _AuthScreenState extends State<AuthScreen> {
               ),
               TextFormField(
                 controller: _passwordController,
-                decoration: const InputDecoration(labelText: 'Password'),
-                obscureText: true,
+                decoration: InputDecoration(
+                  labelText: 'Password',
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscurePassword
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                    ),
+                    onPressed: () =>
+                        setState(() => _obscurePassword = !_obscurePassword),
+                  ),
+                ),
+                obscureText: _obscurePassword,
                 validator: (v) => v!.length < 6 ? 'Min 6 characters' : null,
               ),
               const SizedBox(height: 30),

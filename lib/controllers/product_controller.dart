@@ -5,7 +5,6 @@ import '../models/product_model.dart';
 class ProductController extends GetxController {
   final ApiService _apiService = ApiService();
 
-  // Reactive list to store products from MySQL
   var products = <Product>[].obs;
   var isLoading = true.obs;
 

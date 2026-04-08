@@ -5,7 +5,9 @@ import 'payment.dart';
 import '../models/cart_item_model.dart'; // Import the CartItem model
 
 class CheckoutScreen extends StatelessWidget {
-  const CheckoutScreen({super.key});
+  CheckoutScreen({super.key});
+
+  final _phoneController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -63,6 +65,22 @@ class CheckoutScreen extends StatelessWidget {
               ),
             ),
             const Divider(),
+            const Text(
+              'M-Pesa Payment',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _phoneController,
+              decoration: const InputDecoration(
+                labelText: "Phone Number",
+                hintText: "e.g. 2547XXXXXXXX",
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.phone),
+              ),
+              keyboardType: TextInputType.phone,
+            ),
+            const SizedBox(height: 16),
             const SizedBox(height: 16),
             SizedBox(
               width: double.infinity,
@@ -71,8 +89,18 @@ class CheckoutScreen extends StatelessWidget {
                   onPressed: controller.isLoading.value
                       ? null
                       : () async {
-                          // Logic moved to OrderController.processCheckout()
-                          bool success = await controller.processCheckout();
+                          if (_phoneController.text.isEmpty) {
+                            Get.snackbar(
+                              'Input Required',
+                              'Please enter your M-Pesa phone number.',
+                              backgroundColor: Colors.orange,
+                            );
+                            return;
+                          }
+
+                          bool success = await controller.processCheckout(
+                            _phoneController.text,
+                          );
                           if (success && context.mounted) {
                             Get.to(() => const PaymentScreen());
                           } else if (!success) {

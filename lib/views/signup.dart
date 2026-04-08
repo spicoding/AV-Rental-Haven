@@ -1,20 +1,69 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/configs/colors.dart';
 import 'package:flutter_application_1/controllers/signupcontroller.dart';
-import 'package:get/get_core/src/get_main.dart';
-import 'package:get/get_instance/src/extension_instance.dart';
-import 'package:get/get_navigation/src/extension_navigation.dart';
+import 'package:get/get.dart';
+import '../services/api_service.dart';
+import 'homescreen.dart';
+import 'orders.dart';
 
 SignUpController signUpController = Get.put(SignUpController());
 
-void main() {
-  runApp(
-    const MaterialApp(debugShowCheckedModeBanner: false, home: SignupPage()),
-  );
+class SignupPage extends StatefulWidget {
+  const SignupPage({super.key});
+
+  @override
+  State<SignupPage> createState() => _SignupPageState();
 }
 
-class SignupPage extends StatelessWidget {
-  const SignupPage({super.key});
+class _SignupPageState extends State<SignupPage> {
+  final ApiService _apiService = ApiService();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  bool _obscureText = true;
+  bool _isLoading = false;
+
+  void _signUp() async {
+    if (_nameController.text.isEmpty ||
+        _emailController.text.isEmpty ||
+        _passwordController.text.isEmpty) {
+      Get.snackbar(
+        "Error",
+        "Please fill all fields",
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+    final response = await _apiService.registerUser(
+      _nameController.text,
+      _emailController.text,
+      _passwordController.text,
+    );
+    setState(() => _isLoading = false);
+
+    if (response['status'] == 'success') {
+      Get.snackbar("Success", "Account created! Please log in.");
+      Get.toNamed("/login");
+    } else {
+      Get.snackbar(
+        "Error",
+        response['message'] ?? "Registration failed",
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,6 +102,7 @@ class SignupPage extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
                 child: TextField(
+                  controller: _nameController,
                   decoration: InputDecoration(
                     hintText: "Enter Full Name",
                     border: OutlineInputBorder(
@@ -80,6 +130,7 @@ class SignupPage extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
                 child: TextField(
+                  controller: _emailController,
                   decoration: InputDecoration(
                     hintText: "Enter Email Address",
                     border: OutlineInputBorder(
@@ -107,30 +158,46 @@ class SignupPage extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
                 child: TextField(
-                  obscureText: true,
+                  controller: _passwordController,
+                  obscureText: _obscureText,
                   decoration: InputDecoration(
                     hintText: "Create Password",
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(20),
                     ),
                     prefixIcon: const Icon(Icons.lock),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscureText ? Icons.visibility : Icons.visibility_off,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _obscureText = !_obscureText;
+                        });
+                      },
+                    ),
                   ),
                 ),
               ),
               const SizedBox(height: 20),
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
-                child: Container(
-                  height: 50,
-                  width: double.infinity,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: const Color.fromARGB(255, 236, 11, 11),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: const Text(
-                    "Sign Up",
-                    style: TextStyle(color: Colors.white, fontSize: 14),
+                child: GestureDetector(
+                  onTap: _isLoading ? null : _signUp,
+                  child: Container(
+                    height: 50,
+                    width: double.infinity,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: const Color.fromARGB(255, 236, 11, 11),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: _isLoading
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : const Text(
+                            "Sign Up",
+                            style: TextStyle(color: Colors.white, fontSize: 14),
+                          ),
                   ),
                 ),
               ),
