@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import '../models/product_model.dart';
-import '../models/user_model.dart';
 
 class ApiService {
   // Use '10.0.2.2' for Android Emulator to refer to your PC's localhost.

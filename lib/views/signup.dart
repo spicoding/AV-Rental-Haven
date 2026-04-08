@@ -3,8 +3,6 @@ import 'package:flutter_application_1/configs/colors.dart';
 import 'package:flutter_application_1/controllers/signupcontroller.dart';
 import 'package:get/get.dart';
 import '../services/api_service.dart';
-import 'homescreen.dart';
-import 'orders.dart';
 
 SignUpController signUpController = Get.put(SignUpController());
 
