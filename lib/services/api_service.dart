@@ -1,6 +1,9 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
+import '../models/product_model.dart';
+import '../models/user_model.dart';
+
 class ApiService {
   // Use '10.0.2.2' for Android Emulator to refer to your PC's localhost.
   // If using a physical device, replace this with your PC's IP (e.g., 192.168.1.5)
@@ -8,7 +11,7 @@ class ApiService {
 
   // New method for user registration
   Future<Map<String, dynamic>> registerUser(
-    String name,
+    String fullName,
     String email,
     String password,
   ) async {
@@ -17,8 +20,8 @@ class ApiService {
         Uri.parse(baseUrl),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({
-          "action": "register",
-          "full_name": name,
+          "action": "register", // This is the action for the PHP script
+          "full_name": fullName,
           "email_address": email,
           "password": password,
         }),
@@ -30,8 +33,25 @@ class ApiService {
     }
   }
 
+  Future<Map<String, dynamic>> loginUser(String email, String password) async {
+    try {
+      final response = await http.post(
+        Uri.parse(baseUrl),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({
+          "action": "login",
+          "email_address": email,
+          "password": password,
+        }),
+      );
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {"status": "error", "message": e.toString()};
+    }
+  }
+
   // Method to fetch products from the database
-  Future<List<dynamic>> fetchProducts() async {
+  Future<List<Product>> fetchProducts() async {
     try {
       final response = await http
           .post(
@@ -44,10 +64,12 @@ class ApiService {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['status'] == 'success') {
-          return data['products'];
+          return (data['products'] as List)
+              .map((e) => Product.fromJson(e))
+              .toList();
         }
       }
-      return [];
+      return []; // Return empty list on failure or no products
     } catch (e) {
       return [];
     }

@@ -1,124 +1,72 @@
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'checkout.dart';
+import '../services/api_service.dart';
+import '../models/product_model.dart';
+import '../models/cart_item_model.dart';
 
 class OrderController extends GetxController {
-  // Reactive list to keep track of the orders
-  var orders = <Map<String, dynamic>>[].obs;
-  // Reactive list to keep track of past rentals/orders
-  var rentalHistory = <Map<String, dynamic>>[].obs;
+  // Reactive list of items in the cart
+  var orders = <CartItem>[].obs;
+  final ApiService _apiService = ApiService();
+  var isLoading = false.obs;
+  var currentUserId = 0.obs; // Start as 0 (logged out)
 
-  void addOrder(Map<String, dynamic> product) {
-    orders.add(product);
-  }
-
-  void removeOrder(Map<String, dynamic> product) {
-    orders.remove(product);
-  }
-}
-
-class OrdersScreen extends StatelessWidget {
-  OrdersScreen({super.key});
-
-  // Find the already initialized controller
-  final OrderController controller = Get.find<OrderController>();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('My Orders'),
-        backgroundColor: const Color.fromARGB(255, 255, 0, 0),
-        foregroundColor: Colors.white,
-      ),
-      body: Obx(() {
-        if (controller.orders.isEmpty) {
-          return const Center(
-            child: Text(
-              'You have no orders yet.',
-              style: TextStyle(fontSize: 18, color: Colors.grey),
-            ),
-          );
-        }
-        return Column(
-          children: [
-            Expanded(
-              child: ListView.builder(
-                itemCount: controller.orders.length,
-                itemBuilder: (context, index) {
-                  final item = controller.orders[index];
-                  return Card(
-                    margin: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    elevation: 2,
-                    child: ListTile(
-                      leading: ClipRRect(
-                        borderRadius: BorderRadius.circular(6),
-                        child: Image.asset(
-                          item['image'],
-                          width: 50,
-                          height: 50,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stack) =>
-                              const Icon(Icons.image_not_supported),
-                        ),
-                      ),
-                      title: Text(
-                        item['name'],
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      subtitle: Text(
-                        item['price'],
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      trailing: IconButton(
-                        icon: const Icon(
-                          Icons.remove_circle_outline,
-                          color: Colors.red,
-                        ),
-                        onPressed: () {
-                          controller.removeOrder(item);
-                        },
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const CheckoutScreen(),
-                      ),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color.fromARGB(255, 255, 0, 0),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: const Text(
-                    'Proceed to Checkout',
-                    style: TextStyle(fontSize: 18),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        );
-      }),
+  void addItem(Product product, {String? imageUrl}) {
+    // Check if item already exists, if so, increment quantity
+    final existingItemIndex = orders.indexWhere(
+      (item) => item.product.productId == product.productId,
     );
+    if (existingItemIndex != -1) {
+      // For simplicity, we'll just add a new item. For a real cart, you'd update quantity.
+      orders.add(
+        CartItem.fromProduct(product, quantity: 1, imageUrl: imageUrl),
+      );
+    } else {
+      orders.add(
+        CartItem.fromProduct(product, quantity: 1, imageUrl: imageUrl),
+      );
+    }
+  }
+
+  void removeItem(int index) {
+    orders.removeAt(index);
+  }
+
+  // This getter calculates the total amount of all items in the cart
+  double get totalAmount {
+    return orders.fold(0, (sum, item) {
+      return sum + (item.product.unitPrice * item.quantity);
+    });
+  }
+
+  Future<bool> processCheckout() async {
+    if (orders.isEmpty) return false;
+    if (currentUserId.value == 0) {
+      Get.snackbar("Error", "Please log in to place an order.");
+      return false;
+    }
+
+    isLoading.value = true;
+    try {
+      // Map UI items to the MySQL database schema
+      final databaseReadyOrders = orders.map((item) {
+        return item.toDatabaseMap(
+          location: "Main Campus", // Replace with actual location logic
+          userId: currentUserId.value, // Use the dynamic user ID
+          paymentId:
+              "PAY-${DateTime.now().millisecondsSinceEpoch}", // Generate a unique payment ID
+        );
+      }).toList();
+
+      bool success = await _apiService.submitOrder(databaseReadyOrders);
+
+      if (success) {
+        orders.clear(); // Empty cart on success
+      }
+      return success;
+    } catch (e) {
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
   }
 }

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'orders.dart';
 import 'payment.dart';
-import '../services/api_service.dart';
+import '../models/cart_item_model.dart'; // Import the CartItem model
 
 class CheckoutScreen extends StatelessWidget {
   const CheckoutScreen({super.key});
@@ -11,7 +11,6 @@ class CheckoutScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     // Retrieve the existing controller to access the orders
     final OrderController controller = Get.find<OrderController>();
-    final ApiService apiService = ApiService();
 
     return Scaffold(
       appBar: AppBar(
@@ -34,13 +33,15 @@ class CheckoutScreen extends StatelessWidget {
                 () => ListView.builder(
                   itemCount: controller.orders.length,
                   itemBuilder: (context, index) {
-                    final item = controller.orders[index];
+                    final CartItem item =
+                        controller.orders[index]; // Use CartItem type
                     return ListTile(
                       contentPadding: EdgeInsets.zero,
                       leading: ClipRRect(
                         borderRadius: BorderRadius.circular(4),
                         child: Image.asset(
-                          item['image'],
+                          item.imageUrl ??
+                              'assets/placeholder.png', // Use item.imageUrl
                           width: 50,
                           height: 50,
                           fit: BoxFit.cover,
@@ -49,12 +50,11 @@ class CheckoutScreen extends StatelessWidget {
                         ),
                       ),
                       title: Text(
-                        item['name'],
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                        item.product.productName,
+                      ), // Use item.product.productName
+                      subtitle: Text('Quantity: ${item.quantity}'),
                       trailing: Text(
-                        item['price'],
+                        '\$${(item.product.unitPrice * item.quantity).toStringAsFixed(2)}', // Display calculated price
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                     );
@@ -66,57 +66,43 @@ class CheckoutScreen extends StatelessWidget {
             const SizedBox(height: 16),
             SizedBox(
               width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () async {
-                  // Map the cart items to match your MySQL database fields
-                  final databaseReadyOrders = controller.orders.map((item) {
-                    return {
-                      "location":
-                          "Main Campus", // Replace with actual location logic
-                      "user_id": 1, // Replace with actual logged-in user ID
-                      "payment_id":
-                          "PAY-${DateTime.now().millisecondsSinceEpoch}",
-                      // Clean the price string (remove '$' or 'KES') to send as amount
-                      "amount": item['price'].replaceAll(
-                        RegExp(r'[^0-9.]'),
-                        '',
-                      ),
-                    };
-                  }).toList();
-
-                  // Send transformed data to MySQL via the PHP API
-                  bool success = await apiService.submitOrder(
-                    databaseReadyOrders,
-                  );
-
-                  if (success) {
-                    if (context.mounted) {
-                      // Navigate to the payment processing screen
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const PaymentScreen(),
+              child: Obx(
+                () => ElevatedButton(
+                  onPressed: controller.isLoading.value
+                      ? null
+                      : () async {
+                          // Logic moved to OrderController.processCheckout()
+                          bool success = await controller.processCheckout();
+                          if (success && context.mounted) {
+                            Get.to(() => const PaymentScreen());
+                          } else if (!success) {
+                            Get.snackbar(
+                              'Order Failed',
+                              'Could not place order. Please try again.',
+                              snackPosition: SnackPosition.BOTTOM,
+                              backgroundColor: Colors.red,
+                              colorText: Colors.white,
+                            );
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color.fromARGB(255, 255, 0, 0),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
+                  child: controller.isLoading.value
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Text(
+                          'Place Order',
+                          style: TextStyle(fontSize: 18),
                         ),
-                      );
-                    }
-                  } else {
-                    Get.snackbar(
-                      'Database Error',
-                      'Failed to link with MySQL. Ensure XAMPP is running and the API is accessible.',
-                      snackPosition: SnackPosition.BOTTOM,
-                      backgroundColor: Colors.red,
-                      colorText: Colors.white,
-                    );
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color.fromARGB(255, 255, 0, 0),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-                child: const Text(
-                  'Place Order',
-                  style: TextStyle(fontSize: 18),
                 ),
               ),
             ),
