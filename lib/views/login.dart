@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application_1/configs/colors.dart';
 import 'package:flutter_application_1/controllers/logincontroller.dart';
 import 'package:get/get.dart';
+import 'orders.dart'; // Import to access OrderController
 
-LoginController loginController = Get.put(LoginController());
-
-TextEditingController usernameController = TextEditingController();
-TextEditingController passwordController = TextEditingController();
+// Ensure OrderController is initialized before LoginController since LoginController depends on it
+final OrderController _orderController = Get.put(OrderController());
+final LoginController loginController = Get.put(LoginController());
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -16,7 +16,15 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  bool _isPasswordVisible = false;
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +60,7 @@ class _LoginPageState extends State<LoginPage> {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
                   child: TextField(
-                    controller: usernameController,
+                    controller: _emailController,
                     decoration: InputDecoration(
                       hintText: "Email or Phone Number",
                       border: OutlineInputBorder(
@@ -81,25 +89,25 @@ class _LoginPageState extends State<LoginPage> {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
                   child: TextField(
-                    controller: passwordController,
-                    obscureText: !_isPasswordVisible,
+                    controller: _passwordController,
+                    obscureText: loginController.isObscured.value,
                     decoration: InputDecoration(
                       hintText: "PIN or Password",
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20),
                       ),
                       prefixIcon: const Icon(Icons.lock),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _isPasswordVisible
-                              ? Icons.visibility
-                              : Icons.visibility_off,
+                      suffixIcon: Obx(
+                        () => IconButton(
+                          icon: Icon(
+                            loginController.isObscured.value
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                          ),
+                          onPressed: () {
+                            loginController.togglePassword();
+                          },
                         ),
-                        onPressed: () {
-                          setState(() {
-                            _isPasswordVisible = !_isPasswordVisible;
-                          });
-                        },
                       ),
                     ),
                   ),
@@ -116,28 +124,26 @@ class _LoginPageState extends State<LoginPage> {
                         color: const Color.fromARGB(255, 219, 24, 24),
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      child: const Text(
-                        "Login",
-                        style: TextStyle(color: Colors.white, fontSize: 14),
+                      child: Obx(
+                        () => loginController.isLoading.value
+                            ? const CircularProgressIndicator(
+                                color: Colors.white,
+                              )
+                            : const Text(
+                                "Login",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                ),
+                              ),
                       ),
                     ),
                   ),
                   onTap: () {
-                    bool success = loginController.login(
-                      usernameController.text,
-                      passwordController.text,
+                    loginController.login(
+                      _emailController.text,
+                      _passwordController.text,
                     );
-                    if (success) {
-                      Get.offAndToNamed("/homescreen");
-                    } else {
-                      Get.snackbar(
-                        "Login Failed",
-                        "Check your credentials and then try again.",
-                        backgroundColor: Colors.red,
-                        colorText: Colors.white,
-                      );
-                    }
-                    // Get.offAndToNamed("/homescreen");
                   },
                 ),
                 const SizedBox(height: 20),

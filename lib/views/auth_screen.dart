@@ -13,12 +13,13 @@ class AuthScreen extends StatefulWidget {
 
 class _AuthScreenState extends State<AuthScreen> {
   final ApiService _apiService = ApiService();
-  final OrderController _orderController = Get.find<OrderController>();
+  final OrderController _orderController = Get.put(OrderController());
 
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
 
   bool _isLogin = true;
   bool _isLoading = false;
@@ -27,18 +28,24 @@ class _AuthScreenState extends State<AuthScreen> {
   void _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
+    if (!_isLogin &&
+        _passwordController.text != _confirmPasswordController.text) {
+      Get.snackbar("Error", "Passwords do not match");
+      return;
+    }
+
     setState(() => _isLoading = true);
     Map<String, dynamic> response;
 
     if (_isLogin) {
       response = await _apiService.loginUser(
-        _emailController.text,
+        _emailController.text.trim(),
         _passwordController.text,
       );
     } else {
       response = await _apiService.registerUser(
-        _nameController.text,
-        _emailController.text,
+        _nameController.text.trim(),
+        _emailController.text.trim(),
         _passwordController.text,
       );
     }
@@ -123,6 +130,16 @@ class _AuthScreenState extends State<AuthScreen> {
                 obscureText: _obscurePassword,
                 validator: (v) => v!.length < 6 ? 'Min 6 characters' : null,
               ),
+              if (!_isLogin)
+                TextFormField(
+                  controller: _confirmPasswordController,
+                  decoration: const InputDecoration(
+                    labelText: 'Confirm Password',
+                  ),
+                  obscureText: _obscurePassword,
+                  validator: (v) =>
+                      v!.isEmpty ? 'Please confirm password' : null,
+                ),
               const SizedBox(height: 30),
               if (_isLoading)
                 const Center(child: CircularProgressIndicator())

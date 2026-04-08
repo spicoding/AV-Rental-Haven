@@ -1,21 +1,48 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../services/api_service.dart';
+import '../views/orders.dart';
+import '../views/homescreen.dart';
 
 class LoginController extends GetxController {
-  var username = "".obs;
-  var password = "".obs;
-  var passwordVisible = false.obs;
+  final ApiService _apiService = ApiService();
+  // Use Get.put to ensure OrderController exists when LoginController is created
+  final OrderController _orderController = Get.put(OrderController());
 
-  login(user, pass) {
-    username.value = user;
-    password.value = pass;
-    if (username.value == "admin" && password.value == "34493370") {
-      return true;
+  var isLoading = false.obs;
+  var isObscured = true.obs;
+
+  Future<void> login(String email, String password) async {
+    // 1. Hardcoded Admin Bypass (Optional)
+    if (email == "admin" && password == "34493370") {
+      _orderController.currentUserId.value = 999; // Mock Admin ID
+      Get.offAll(() => const HomeScreen());
+      Get.snackbar("Success", "Logged in as Admin");
+      return;
+    }
+
+    // 2. Standard Database Login
+    isLoading.value = true;
+    final response = await _apiService.loginUser(email, password);
+    isLoading.value = false;
+
+    if (response['status'] == 'success') {
+      _orderController.currentUserId.value = int.parse(
+        response['user_id'].toString(),
+      );
+      Get.snackbar("Success", "Welcome back!");
+      Get.offAll(() => const HomeScreen());
     } else {
-      return false;
+      Get.snackbar(
+        "Login Failed",
+        response['message'] ?? "Invalid credentials",
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
     }
   }
 
   togglePassword() {
-    passwordVisible.value = !passwordVisible.value;
+    isObscured.value = !isObscured.value;
   }
 }

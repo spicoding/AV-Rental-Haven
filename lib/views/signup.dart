@@ -18,13 +18,16 @@ class _SignupPageState extends State<SignupPage> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
   bool _obscureText = true;
   bool _isLoading = false;
 
   void _signUp() async {
     if (_nameController.text.isEmpty ||
         _emailController.text.isEmpty ||
-        _passwordController.text.isEmpty) {
+        _passwordController.text.isEmpty ||
+        _confirmPasswordController.text.isEmpty) {
       Get.snackbar(
         "Error",
         "Please fill all fields",
@@ -34,10 +37,20 @@ class _SignupPageState extends State<SignupPage> {
       return;
     }
 
+    if (_passwordController.text != _confirmPasswordController.text) {
+      Get.snackbar(
+        "Error",
+        "Passwords do not match",
+        backgroundColor: Colors.orange,
+        colorText: Colors.white,
+      );
+      return;
+    }
+
     setState(() => _isLoading = true);
     final response = await _apiService.registerUser(
-      _nameController.text,
-      _emailController.text,
+      _nameController.text.trim(),
+      _emailController.text.trim(),
       _passwordController.text,
     );
     setState(() => _isLoading = false);
@@ -164,6 +177,45 @@ class _SignupPageState extends State<SignupPage> {
                       borderRadius: BorderRadius.circular(20),
                     ),
                     prefixIcon: const Icon(Icons.lock),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscureText ? Icons.visibility : Icons.visibility_off,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _obscureText = !_obscureText;
+                        });
+                      },
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              const Padding(
+                padding: EdgeInsets.fromLTRB(25, 0, 20, 5),
+                child: Row(
+                  children: [
+                    Text(
+                      "Confirm Password",
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+                child: TextField(
+                  controller: _confirmPasswordController,
+                  obscureText: _obscureText,
+                  decoration: InputDecoration(
+                    hintText: "Confirm Your Password",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    prefixIcon: const Icon(Icons.lock_outline),
                     suffixIcon: IconButton(
                       icon: Icon(
                         _obscureText ? Icons.visibility : Icons.visibility_off,

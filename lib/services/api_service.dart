@@ -28,6 +28,16 @@ class ApiService {
           )
           .timeout(const Duration(seconds: 10));
 
+      print("HTTP Status (${response.statusCode}) for $fullName");
+
+      if (response.body.isEmpty) {
+        return {
+          "status": "error",
+          "message":
+              "Server returned empty response (Status: ${response.statusCode})",
+        };
+      }
+
       final decoded = jsonDecode(response.body);
       print("API Response ($fullName): ${response.body}");
       return decoded;
@@ -49,6 +59,17 @@ class ApiService {
             }),
           )
           .timeout(const Duration(seconds: 10));
+
+      print("HTTP Status (${response.statusCode}) for Login");
+
+      if (response.body.isEmpty) {
+        return {
+          "status": "error",
+          "message":
+              "Server returned empty response (Status: ${response.statusCode})",
+        };
+      }
+
       final decoded = jsonDecode(response.body);
       print("Login Response: ${response.body}");
       return decoded;
