@@ -5,7 +5,7 @@ import 'package:get/get.dart';
 import 'orders.dart'; // Import to access OrderController (already imported in LoginController)
 
 // Ensure OrderController is initialized before LoginController since LoginController depends on it
-final OrderController _orderController = Get.put(OrderController());
+final OrderController ordersController = Get.put(OrderController());
 final LoginController loginController = Get.put(LoginController());
 
 class LoginPage extends StatefulWidget {
@@ -107,13 +107,12 @@ class _LoginPageState extends State<LoginPage> {
                           onPressed: () {
                             loginController.togglePassword();
                           },
+                        ),
                       ),
                     ),
                   ),
                 ),
-               
-              
-               const SizedBox(height: 20),
+                const SizedBox(height: 20),
                 GestureDetector(
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
@@ -159,9 +158,8 @@ class _LoginPageState extends State<LoginPage> {
                           color: primaryColor,
                           fontWeight: FontWeight.bold,
                         ),
-                      
                       ),
-                      
+
                       onTap: () {
                         Get.toNamed("/signup");
                       },
