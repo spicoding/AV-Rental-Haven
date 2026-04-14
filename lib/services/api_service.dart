@@ -1,8 +1,8 @@
 import 'dart:convert';
+import 'dart:async';
 import 'package:http/http.dart' as http;
 
 import '../models/product_model.dart';
-import '../models/user_model.dart'; // Import User model
 
 class ApiService {
   // Use '10.0.2.2' for Android Emulator to refer to your PC's localhost.
@@ -32,17 +32,32 @@ class ApiService {
 
       print("HTTP Status (${response.statusCode}) for $fullName");
 
-      if (response.body.isEmpty) {
+      if (response.statusCode != 200) {
         return {
           "status": "error",
           "message":
-              "Server returned empty response (Status: ${response.statusCode})",
+              "Server error (${response.statusCode}). Check your API logs.",
+        };
+      }
+
+      if (response.body.isEmpty) {
+        return {
+          "status": "error",
+          "message": "Server returned an empty response.",
         };
       }
 
       final decoded = jsonDecode(response.body);
       print("API Response ($fullName): ${response.body}");
       return decoded;
+    } on TimeoutException {
+      return {
+        "status": "error",
+        "message":
+            "Connection timed out. Please check if your server at $baseUrl is reachable.",
+      };
+    } on http.ClientException catch (e) {
+      return {"status": "error", "message": "Network error: ${e.message}"};
     } catch (e) {
       return {"status": "error", "message": e.toString()};
     }
@@ -65,17 +80,29 @@ class ApiService {
 
       print("HTTP Status (${response.statusCode}) for Login");
 
-      if (response.body.isEmpty) {
+      if (response.statusCode != 200) {
         return {
           "status": "error",
           "message":
-              "Server returned empty response (Status: ${response.statusCode})",
+              "Server error (${response.statusCode}). Check your database connection.",
+        };
+      }
+
+      if (response.body.isEmpty) {
+        return {
+          "status": "error",
+          "message": "Server returned an empty response.",
         };
       }
 
       final decoded = jsonDecode(response.body);
       print("Login Response: ${response.body}");
       return decoded;
+    } on TimeoutException {
+      return {
+        "status": "error",
+        "message": "Login timed out. Ensure the database server is running.",
+      };
     } catch (e) {
       return {"status": "error", "message": e.toString()};
     }
