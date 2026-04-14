@@ -4,10 +4,6 @@ import 'package:flutter_application_1/controllers/logincontroller.dart';
 import 'package:get/get.dart';
 import 'orders.dart'; // Import to access OrderController (already imported in LoginController)
 
-// Ensure OrderController is initialized before LoginController since LoginController depends on it
-final OrderController ordersController = Get.put(OrderController());
-final LoginController loginController = Get.put(LoginController());
-
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
@@ -16,6 +12,10 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  // Initialize controllers inside the State to manage lifecycle properly
+  final OrderController ordersController = Get.put(OrderController());
+  final LoginController loginController = Get.put(LoginController());
+
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
@@ -140,10 +140,21 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                   onTap: () {
-                    loginController.login(
-                      _emailController.text,
-                      _passwordController.text,
-                    );
+                    if (_emailController.text.isEmpty ||
+                        _passwordController.text.isEmpty) {
+                      Get.snackbar(
+                        "Error",
+                        "Please enter both email and password",
+                        snackPosition: SnackPosition.BOTTOM,
+                        backgroundColor: Colors.red,
+                        colorText: Colors.white,
+                      );
+                    } else {
+                      loginController.login(
+                        _emailController.text.trim(),
+                        _passwordController.text,
+                      );
+                    }
                   },
                 ),
                 const SizedBox(height: 20),
