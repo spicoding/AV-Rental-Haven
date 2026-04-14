@@ -98,7 +98,10 @@ class OrderController extends GetxController {
         );
       }).toList();
 
-      bool success = await _apiService.submitOrder(databaseReadyOrders);
+      bool success = await _apiService.submitOrder(
+        currentUserId.value,
+        databaseReadyOrders,
+      );
 
       if (success) {
         orders.clear(); // Empty cart on success

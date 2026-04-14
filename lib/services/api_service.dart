@@ -15,7 +15,6 @@ class ApiService {
     String email,
     String password,
   ) async {
-    // This method returns Map<String, dynamic> which includes user details
     try {
       final response = await http
           .post(
@@ -133,13 +132,17 @@ class ApiService {
     }
   }
 
-  Future<bool> submitOrder(List<dynamic> orders) async {
+  Future<bool> submitOrder(int userId, List<dynamic> orders) async {
     try {
       final response = await http
           .post(
             Uri.parse(baseUrl),
             headers: {"Content-Type": "application/json"},
-            body: jsonEncode({"action": "place_order", "orders": orders}),
+            body: jsonEncode({
+              "action": "place_order",
+              "user_id": userId,
+              "orders": orders,
+            }),
           )
           .timeout(const Duration(seconds: 10));
 
