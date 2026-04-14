@@ -7,8 +7,8 @@ import '../models/user_model.dart';
 
 class LoginController extends GetxController {
   final ApiService _apiService = ApiService();
-  // Use Get.put to ensure OrderController exists when LoginController is created
-  final OrderController _orderController = Get.put(OrderController());
+  // Use Get.find since OrderController is already initialized in the View
+  late final OrderController _orderController = Get.find<OrderController>();
 
   var isLoading = false.obs;
   var isObscured = true.obs;
@@ -29,9 +29,15 @@ class LoginController extends GetxController {
 
     if (response['status'] == 'success') {
       // Capture full user details from the response
-      final user = User.fromJson(response);
-      _orderController.currentUser.value = user;
-      _orderController.currentUserId.value = user.id ?? 0;
+      try {
+        final user = User.fromJson(response);
+        _orderController.currentUser.value = user;
+        _orderController.currentUserId.value = user.id ?? 0;
+      } catch (e) {
+        print("Error parsing user data: $e");
+        Get.snackbar("Error", "Failed to process user data from server");
+        return;
+      }
 
       Get.snackbar("Success", "Welcome back!");
       Get.offAll(() => const HomeScreen());

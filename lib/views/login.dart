@@ -140,6 +140,9 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                   onTap: () {
+                    // Prevent multiple taps while the request is loading
+                    if (loginController.isLoading.value) return;
+
                     if (_emailController.text.isEmpty ||
                         _passwordController.text.isEmpty) {
                       Get.snackbar(

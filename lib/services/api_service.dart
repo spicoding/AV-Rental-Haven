@@ -7,7 +7,7 @@ import '../models/product_model.dart';
 class ApiService {
   // Use '10.0.2.2' for Android Emulator to refer to your PC's localhost.
   // If using a physical device, replace this with your PC's IP (e.g., 192.168.1.5)
-  static const String baseUrl = 'http://192.168.100.4/av_rental_api/api.php';
+  static const String baseUrl = 'http://10.8.36.131/av_rental_api/api.php';
 
   // New method for user registration
   Future<Map<String, dynamic>> registerUser(
@@ -31,6 +31,14 @@ class ApiService {
 
       print("HTTP Status (${response.statusCode}) for $fullName");
 
+      if (response.statusCode == 500) {
+        return {
+          "status": "error",
+          "message":
+              "Database connection failed. Please ensure your MySQL service is running on the server.",
+        };
+      }
+
       if (response.statusCode != 200) {
         return {
           "status": "error",
@@ -46,9 +54,18 @@ class ApiService {
         };
       }
 
-      final decoded = jsonDecode(response.body);
-      print("API Response ($fullName): ${response.body}");
-      return decoded;
+      try {
+        final decoded = jsonDecode(response.body);
+        print("API Response ($fullName): ${response.body}");
+        return decoded;
+      } catch (e) {
+        print("JSON Parsing Error: $e. Response Body: ${response.body}");
+        return {
+          "status": "error",
+          "message":
+              "The server returned an invalid response. The database might be offline.",
+        };
+      }
     } on TimeoutException {
       return {
         "status": "error",
@@ -79,6 +96,14 @@ class ApiService {
 
       print("HTTP Status (${response.statusCode}) for Login");
 
+      if (response.statusCode == 500) {
+        return {
+          "status": "error",
+          "message":
+              "Database error: The server could not connect to the database. Verify that MySQL is started.",
+        };
+      }
+
       if (response.statusCode != 200) {
         return {
           "status": "error",
@@ -94,13 +119,23 @@ class ApiService {
         };
       }
 
-      final decoded = jsonDecode(response.body);
-      print("Login Response: ${response.body}");
-      return decoded;
+      try {
+        final decoded = jsonDecode(response.body);
+        print("Login Response: ${response.body}");
+        return decoded;
+      } catch (e) {
+        print("JSON Parsing Error: $e. Response Body: ${response.body}");
+        return {
+          "status": "error",
+          "message":
+              "Invalid response from server. Please verify the database is running.",
+        };
+      }
     } on TimeoutException {
       return {
         "status": "error",
-        "message": "Login timed out. Ensure the database server is running.",
+        "message":
+            "Login timed out. Please check your internet and server connection.",
       };
     } catch (e) {
       return {"status": "error", "message": e.toString()};
