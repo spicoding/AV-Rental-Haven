@@ -4,6 +4,7 @@ import '../services/api_service.dart';
 import '../models/product_model.dart';
 import '../models/cart_item_model.dart';
 import '../models/user_model.dart';
+import '../models/payment_model.dart';
 import 'checkout.dart';
 
 class OrderController extends GetxController {
@@ -76,6 +77,7 @@ class OrderController extends GetxController {
       final mpesaResponse = await _apiService.initiateMpesaPayment(
         phoneNumber,
         totalAmount,
+        currentUserId.value,
       );
 
       if (mpesaResponse['status'] != 'success') {
@@ -86,26 +88,115 @@ class OrderController extends GetxController {
         return false;
       }
 
-      final checkoutRequestId = mpesaResponse['CheckoutRequestID'];
+      final checkoutRequestId = mpesaResponse['CheckoutRequestID'].toString();
 
-      // 2. Map UI items to the MySQL database schema using the M-Pesa Request ID
+      // 2. Save Payment Record to DB
+      final payment = PaymentModel(
+        userId: currentUserId.value,
+        paymentMethod: 'mpesa',
+        amount: totalAmount,
+        transactionReference: checkoutRequestId,
+        status: 'pending',
+        phoneNumber: phoneNumber,
+      );
+
+      final savePaymentResponse = await _apiService.savePaymentRecord(payment);
+
+      if (savePaymentResponse['status'] != 'success') {
+        Get.snackbar("Error", "Failed to record payment info.");
+        return false;
+      }
+
+      final int paymentId = int.parse(
+        savePaymentResponse['payment_id'].toString(),
+      );
+
+      // 3. Map UI items for the order
       final databaseReadyOrders = orders.map((item) {
         return item.toDatabaseMap(
           location: "Main Campus", // Replace with actual location logic
           userId: currentUserId.value, // Use the dynamic user ID
-          paymentId:
-              checkoutRequestId, // Use M-Pesa CheckoutRequestID as the payment reference
+          paymentId: paymentId,
         );
       }).toList();
 
       bool success = await _apiService.submitOrder(
         currentUserId.value,
+        paymentId,
         databaseReadyOrders,
       );
 
       if (success) {
         orders.clear(); // Empty cart on success
       }
+      return success;
+    } catch (e) {
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<bool> processCardCheckout({
+    required String cardNumber,
+    required String expiry,
+    required String cvv,
+  }) async {
+    if (orders.isEmpty) return false;
+    if (currentUserId.value == 0) {
+      Get.snackbar("Error", "Please log in to place an order.");
+      return false;
+    }
+
+    isLoading.value = true;
+    try {
+      final cardResponse = await _apiService.processCardPayment(
+        userId: currentUserId.value,
+        amount: totalAmount,
+        cardNumber: cardNumber,
+        expiry: expiry,
+        cvv: cvv,
+      );
+
+      if (cardResponse['status'] != 'success') {
+        Get.snackbar(
+          "Payment Error",
+          cardResponse['message'] ?? "Card processing failed",
+        );
+        return false;
+      }
+
+      final transactionId = cardResponse['transaction_id'].toString();
+      final payment = PaymentModel(
+        userId: currentUserId.value,
+        paymentMethod: 'card',
+        amount: totalAmount,
+        transactionReference: transactionId,
+        status: 'completed',
+        cardLastFour: cardNumber.substring(cardNumber.length - 4),
+      );
+
+      final savePaymentResponse = await _apiService.savePaymentRecord(payment);
+      if (savePaymentResponse['status'] != 'success') return false;
+
+      final int paymentId = int.parse(
+        savePaymentResponse['payment_id'].toString(),
+      );
+      final databaseReadyOrders = orders.map((item) {
+        return item.toDatabaseMap(
+          location: "Main Campus",
+          userId: currentUserId.value,
+          paymentId: paymentId,
+        );
+      }).toList();
+
+      bool success = await _apiService.submitOrder(
+        currentUserId.value,
+        paymentId,
+        databaseReadyOrders,
+      );
+
+      if (success) orders.clear();
       return success;
     } catch (e) {
       return false;

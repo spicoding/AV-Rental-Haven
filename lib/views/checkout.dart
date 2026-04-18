@@ -222,20 +222,23 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         Get.snackbar('Error', 'Payment failed', backgroundColor: Colors.red);
       }
     } else {
-      // Simulate Card Payment logic
-      controller.isLoading.value = true;
-      await Future.delayed(const Duration(seconds: 2));
-      controller.isLoading.value = false;
-
-      controller.rentalHistory.addAll(controller.orders);
-      controller.orders.clear();
-      Get.snackbar(
-        'Success',
-        'Card payment processed successfully!',
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
+      bool success = await controller.processCardCheckout(
+        cardNumber: _cardNumberController.text,
+        expiry: _expiryController.text,
+        cvv: _cvvController.text,
       );
-      Get.back();
+
+      if (success) {
+        Get.snackbar(
+          'Success',
+          'Card payment processed successfully!',
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
+        Get.back();
+      } else {
+        Get.snackbar('Error', 'Payment failed', backgroundColor: Colors.red);
+      }
     }
   }
 

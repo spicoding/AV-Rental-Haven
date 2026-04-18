@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:http/http.dart' as http;
 
 import '../models/product_model.dart';
+import '../models/payment_model.dart';
 
 class ApiService {
   // Use '10.0.2.2' for Android Emulator to refer to your PC's localhost.
@@ -221,6 +222,49 @@ class ApiService {
           .timeout(const Duration(seconds: 15));
       print("M-Pesa API Response: ${response.body}");
 
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {"status": "error", "message": e.toString()};
+    }
+  }
+
+  Future<Map<String, dynamic>> processCardPayment({
+    required int userId,
+    required double amount,
+    required String cardNumber,
+    required String expiry,
+    required String cvv,
+  }) async {
+    try {
+      final response = await http
+          .post(
+            Uri.parse(baseUrl),
+            headers: {"Content-Type": "application/json"},
+            body: jsonEncode({
+              "action": "card_payment",
+              "user_id": userId,
+              "amount": amount,
+              "card_number": cardNumber,
+              "expiry": expiry,
+              "cvv": cvv,
+            }),
+          )
+          .timeout(const Duration(seconds: 15));
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {"status": "error", "message": e.toString()};
+    }
+  }
+
+  Future<Map<String, dynamic>> savePaymentRecord(PaymentModel payment) async {
+    try {
+      final response = await http
+          .post(
+            Uri.parse(baseUrl),
+            headers: {"Content-Type": "application/json"},
+            body: jsonEncode({"action": "save_payment", ...payment.toJson()}),
+          )
+          .timeout(const Duration(seconds: 10));
       return jsonDecode(response.body);
     } catch (e) {
       return {"status": "error", "message": e.toString()};
