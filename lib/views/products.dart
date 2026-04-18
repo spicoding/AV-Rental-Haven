@@ -1,136 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'orders.dart';
+import '../models/product_model.dart';
 
 class ProductsScreen extends StatelessWidget {
   ProductsScreen({super.key});
 
   final OrderController orderController = Get.put(OrderController());
-
-  // Mock data for our product catalog
-  final List<Map<String, dynamic>> products = [
-    {
-      'name': 'Yamaha DM7 Digital Mixer',
-      'price': 'Ksh 124,999/day',
-      'category': 'Audio',
-      'image': 'assets/yamaha dm7.jpg',
-    },
-    {
-      'name': 'Epson 4K Projector',
-      'price': 'Ksh 9,999/day',
-      'category': 'Visual',
-      'image': 'assets/epson projector.jpg',
-    },
-    {
-      'name': 'Shure SLXD Wireless Microphone System',
-      'price': 'Ksh 6,499/day',
-      'category': 'Audio',
-      'image': "assets/slxd+.jpg",
-    },
-    {
-      'name': 'LED Stage Lights Package',
-      'price': 'Ksh 5,999 - Ksh 499,999/day',
-      'category': 'Lighting',
-      'image': 'assets/led stage lights.jpg',
-    },
-    {
-      'name': 'Pioneer CDJ 3000 Controller',
-      'price': 'Ksh 20,499/day',
-      'category': 'Audio',
-      'image': 'assets/CDJ-3000_angle.jpeg',
-    },
-    {
-      'name': '120" Projection Screen',
-      'price': 'Ksh 29,999/day',
-      'category': 'Visual',
-      'image': 'assets/120 projectorscreen.jpg',
-    },
-    {
-      'name': 'Allen & Heath dLive S7000 Surface',
-      'price': 'Ksh 150,000/day',
-      'category': 'Audio',
-      'image':
-          'assets/xAllen-Heath-dLive-S7000-and-CDM32-Package-768x768.jpg.pagespeed.ic.E-4kLBWTUA.jpg',
-    },
-    {
-      'name': 'DiGiCo Quantum 338 Console',
-      'price': 'Ksh 250,000/day',
-      'category': 'Audio',
-      'image': 'assets/Q338-Pulse-Angle-for-Web1-1200x750.jpg',
-    },
-    {
-      'name': 'd&b audiotechnik J-Series Line Array',
-      'price': 'Ksh 350,000/day',
-      'category': 'Audio',
-      'image': 'assets/d&b audiotechnik.jpg',
-    },
-    {
-      'name': 'dBTechnologies VIO L212',
-      'price': 'Ksh 180,000/day',
-      'category': 'Audio',
-      'image': 'assets/d&b audiotechnik.jpg',
-    },
-    {
-      'name': 'Allen & Heath DX168 Stage Box',
-      'price': 'Ksh 15,000/day',
-      'category': 'Accessories',
-      'image': 'assets/DX168-Hero-1.jpg',
-    },
-    {
-      'name': 'DiGiCo SD-Rack (32 In / 16 Out)',
-      'price': 'Ksh 95,000/day',
-      'category': 'Accessories',
-      'image': 'assets/SD_Mini_Rack_1-1-1200x750-1.png',
-    },
-    {
-      'name': 'Premium XLR Cable Bundle (50m)',
-      'price': 'Ksh 3,500/day',
-      'category': 'Accessories',
-      'image': 'assets/XLR.png',
-    },
-    {
-      'name': 'Sennheiser EW-DX Wireless System',
-      'price': 'Ksh 8,000/day',
-      'category': 'Audio',
-      'image': 'assets/EWE-DX Mics Dante.png',
-    },
-    {
-      'name': 'Shure PSM1000 In-Ear Monitor System',
-      'price': 'Ksh 12,000/day',
-      'category': 'Audio',
-      'image': 'assets/PSM 1000.jpg',
-    },
-    {
-      'name': 'MA Lighting grandMA3 compact Console',
-      'price': 'Ksh 65,000/day',
-      'category': 'Lighting',
-      'image': 'assets/GrandMA3.png',
-    },
-    {
-      'name': 'Absen 2.9mm SA-C Flexible Displays (per sqm)',
-      'price': 'Ksh 15,000/day',
-      'category': 'Visual',
-      'image': 'assets/sa-series-1920X900-sa-series-1920X900LED panels.jpg',
-    },
-    {
-      'name': 'Blackmagic ATEM Television Studio 4K8',
-      'price': 'Ksh 19,999/day',
-      'category': 'Visual',
-      'image': 'assets/ATEM Television studio 4K8.jpg',
-    },
-    {
-      'name': 'Sony FX6 Cinema Camera',
-      'price': 'Ksh 25,000/day',
-      'category': 'Visual',
-      'image': 'assets/Sony FX6.jpg',
-    },
-    {
-      'name': 'Hollyland Solidcom M1 Pro Wireless Intercom',
-      'price': 'Ksh 29,999/day',
-      'category': 'Accessories',
-      'image': 'assets/Hollylans Solidcom M1 Pro.png',
-    },
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -160,30 +36,33 @@ class ProductsScreen extends StatelessWidget {
       ),
       body: Padding(
         padding: const EdgeInsets.all(12.0),
-        child: GridView.builder(
-          itemCount: products.length,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            childAspectRatio: 0.65, // Adjusts height for content
-          ),
-          itemBuilder: (context, index) {
-            final product = products[index];
-            return _buildProductCard(product);
-          },
-        ),
+        child: Obx(() {
+          if (orderController.isLoading.value) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (orderController.products.isEmpty) {
+            return const Center(child: Text("No products available"));
+          }
+          return GridView.builder(
+            itemCount: orderController.products.length,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+              childAspectRatio: 0.65,
+            ),
+            itemBuilder: (context, index) {
+              return ProductCardItem(product: orderController.products[index]);
+            },
+          );
+        }),
       ),
     );
-  }
-
-  Widget _buildProductCard(Map<String, dynamic> product) {
-    return ProductCardItem(product: product);
   }
 }
 
 class ProductCardItem extends StatefulWidget {
-  final Map<String, dynamic> product;
+  final Product product;
 
   const ProductCardItem({super.key, required this.product});
 
@@ -227,7 +106,7 @@ class _ProductCardItemState extends State<ProductCardItem> {
                       top: Radius.circular(12),
                     ),
                     child: Image.asset(
-                      widget.product['image'],
+                      widget.product.imageUrl ?? 'assets/placeholder.png',
                       fit: BoxFit.cover,
                       width: double.infinity,
                       errorBuilder: (context, error, stackTrace) {
@@ -249,7 +128,7 @@ class _ProductCardItemState extends State<ProductCardItem> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        widget.product['category'],
+                        widget.product.category ?? 'General',
                         style: const TextStyle(
                           fontSize: 12,
                           color: Color.fromARGB(255, 130, 29, 9),
@@ -258,7 +137,7 @@ class _ProductCardItemState extends State<ProductCardItem> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        widget.product['name'],
+                        widget.product.productName,
                         style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
@@ -268,7 +147,7 @@ class _ProductCardItemState extends State<ProductCardItem> {
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        widget.product['price'],
+                        'Ksh ${widget.product.unitPrice.toStringAsFixed(0)}/day',
                         style: const TextStyle(
                           fontSize: 14,
                           color: Colors.black87,
@@ -319,7 +198,7 @@ class _ProductCardItemState extends State<ProductCardItem> {
 }
 
 class ProductDetailsScreen extends StatelessWidget {
-  final Map<String, dynamic> product;
+  final Product product;
 
   const ProductDetailsScreen({super.key, required this.product});
 
@@ -327,7 +206,7 @@ class ProductDetailsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(product['name']),
+        title: Text(product.productName),
         backgroundColor: const Color.fromARGB(255, 255, 0, 0),
         foregroundColor: const Color.fromARGB(255, 255, 255, 255),
       ),
@@ -336,7 +215,7 @@ class ProductDetailsScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Image.asset(
-              product['image'],
+              product.imageUrl ?? 'assets/placeholder.png',
               width: double.infinity,
               height: 300,
               fit: BoxFit.cover,
@@ -360,7 +239,7 @@ class ProductDetailsScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    product['category'],
+                    product.category ?? 'General',
                     style: const TextStyle(
                       fontSize: 16,
                       color: Color.fromARGB(255, 130, 29, 9),
@@ -369,7 +248,7 @@ class ProductDetailsScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    product['name'],
+                    product.productName,
                     style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -377,7 +256,7 @@ class ProductDetailsScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    product['price'],
+                    'Ksh ${product.unitPrice.toStringAsFixed(0)}/day',
                     style: const TextStyle(fontSize: 20, color: Colors.black87),
                   ),
                   const SizedBox(height: 16),
@@ -387,9 +266,8 @@ class ProductDetailsScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Experience top-tier performance with the ${product['name']}. '
-                    'Perfect for your ${product['category'].toLowerCase()} needs, ensuring high quality and reliability for your events. '
-                    'Order it today for only ${product['price']}!',
+                    product.productDescription ??
+                        'Experience top-tier performance with the ${product.productName}. Perfect for your event needs.',
                     style: const TextStyle(fontSize: 16, height: 1.5),
                   ),
                   const SizedBox(height: 24),
@@ -398,7 +276,7 @@ class ProductDetailsScreen extends StatelessWidget {
                     height: 50,
                     child: ElevatedButton(
                       onPressed: () {
-                        Get.find<OrderController>().addOrder(product);
+                        Get.find<OrderController>().addItem(product);
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content: Text('Added to your orders!'),

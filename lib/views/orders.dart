@@ -17,6 +17,20 @@ class OrderController extends GetxController {
       Rxn<User>(); // Stores logged-in user details for the profile
   var rentalHistory =
       <dynamic>[].obs; // Added to fix rental_history.dart errors
+  var products = <Product>[].obs;
+
+  @override
+  void onInit() {
+    super.onInit();
+    fetchProducts();
+  }
+
+  Future<void> fetchProducts() async {
+    isLoading.value = true;
+    final fetched = await _apiService.fetchProducts();
+    products.assignAll(fetched);
+    isLoading.value = false;
+  }
 
   // Added to fix products.dart error
   void addOrder(Map<String, dynamic> productData) {

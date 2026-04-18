@@ -2,12 +2,14 @@ class Product {
   final int productId;
   final String productName;
   final String? productDescription; // Nullable if description is optional
+  final String? category;
   final double unitPrice;
   final String? imageUrl;
 
   Product({
     required this.productId,
     required this.productName,
+    this.category,
     this.productDescription,
     required this.unitPrice,
     this.imageUrl,
@@ -19,6 +21,7 @@ class Product {
       productId: int.parse(json['product_id'].toString()),
       productName: json['product_name'] as String,
       productDescription: json['product_description'] as String?,
+      category: json['category'] as String?,
       unitPrice: double.parse(json['unit_price'].toString()),
       imageUrl: json['image'] as String?,
     );
