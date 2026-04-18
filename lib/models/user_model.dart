@@ -8,10 +8,9 @@ class User {
 
   // Factory constructor to create a User from a JSON map (e.g., from API response)
   factory User.fromJson(Map<String, dynamic> json) {
+    final idValue = json['user_id'] ?? json['id'];
     return User(
-      id: json['user_id'] != null
-          ? int.parse(json['user_id'].toString())
-          : null,
+      id: idValue != null ? int.tryParse(idValue.toString()) : null,
       fullName: json['full_name'] as String,
       emailAddress: json['email_address'] as String,
     );

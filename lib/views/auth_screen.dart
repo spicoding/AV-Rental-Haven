@@ -14,7 +14,9 @@ class AuthScreen extends StatefulWidget {
 
 class _AuthScreenState extends State<AuthScreen> {
   final ApiService _apiService = ApiService();
-  final OrderController _orderController = Get.put(OrderController());
+  final OrderController _orderController = Get.isRegistered<OrderController>()
+      ? Get.find<OrderController>()
+      : Get.put(OrderController(), permanent: true);
 
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
@@ -40,13 +42,13 @@ class _AuthScreenState extends State<AuthScreen> {
 
     if (_isLogin) {
       response = await _apiService.loginUser(
-        _emailController.text.trim(),
+        _emailController.text.trim().toLowerCase(),
         _passwordController.text,
       );
     } else {
       response = await _apiService.registerUser(
         _nameController.text.trim(),
-        _emailController.text.trim(),
+        _emailController.text.trim().toLowerCase(),
         _passwordController.text,
       );
     }
@@ -85,6 +87,7 @@ class _AuthScreenState extends State<AuthScreen> {
     _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 

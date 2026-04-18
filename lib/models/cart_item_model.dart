@@ -16,22 +16,17 @@ class CartItem {
     return CartItem(product: product, quantity: quantity, imageUrl: imageUrl);
   }
 
-  // Method to convert a CartItem to the format expected by the 'orders' table in MySQL
-  Map<String, dynamic> toDatabaseMap({
-    required String location,
-    required int userId,
-    required String paymentId,
-  }) {
-    // Calculate the total amount for this specific cart item
+  // Method to convert a CartItem to the format expected for an individual order item in the 'order_items' table
+  Map<String, dynamic> toOrderItemMap() {
     final double itemAmount = product.unitPrice * quantity;
 
     return {
-      "location": location,
-      "user_id": userId,
-      "payment_id": paymentId,
-      "amount": itemAmount.toStringAsFixed(2), // Format to 2 decimal places
-      // You might also want to include product_id and quantity in a separate order_items table
-      // For now, we're simplifying by just sending the total amount per item.
+      "product_id": product.productId,
+      "quantity": quantity,
+      "unit_price": product.unitPrice,
+      "total_price_for_item": itemAmount.toStringAsFixed(
+        2,
+      ), // Format to 2 decimal places
     };
   }
 }

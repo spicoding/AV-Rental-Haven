@@ -1,13 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'orders.dart';
-import 'payment.dart';
+import 'auth_screen.dart';
 import '../models/cart_item_model.dart'; // Import the CartItem model
 
-class CheckoutScreen extends StatelessWidget {
-  CheckoutScreen({super.key});
+class CheckoutScreen extends StatefulWidget {
+  const CheckoutScreen({super.key});
 
+  @override
+  State<CheckoutScreen> createState() => _CheckoutScreenState();
+}
+
+class _CheckoutScreenState extends State<CheckoutScreen> {
   final _phoneController = TextEditingController();
+  final _cardNumberController = TextEditingController();
+  final _expiryController = TextEditingController();
+  final _cvvController = TextEditingController();
+
+  String _selectedPaymentMethod = 'mpesa';
+  final _formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
@@ -29,6 +40,19 @@ class CheckoutScreen extends StatelessWidget {
               'Order Summary',
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
+            Obx(() {
+              final user = controller.currentUser.value;
+              if (user != null) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: Text(
+                    'Logged in as: ${user.emailAddress}',
+                    style: const TextStyle(color: Colors.grey),
+                  ),
+                );
+              }
+              return const SizedBox.shrink();
+            }),
             const SizedBox(height: 16),
             Expanded(
               child: Obx(
@@ -66,52 +90,102 @@ class CheckoutScreen extends StatelessWidget {
             ),
             const Divider(),
             const Text(
-              'M-Pesa Payment',
+              'Select Payment Method',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _phoneController,
-              decoration: const InputDecoration(
-                labelText: "Phone Number",
-                hintText: "e.g. 2547XXXXXXXX",
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.phone),
-              ),
-              keyboardType: TextInputType.phone,
+            Row(
+              children: [
+                Expanded(
+                  child: RadioListTile<String>(
+                    title: const Text('M-Pesa'),
+                    value: 'mpesa',
+                    groupValue: _selectedPaymentMethod,
+                    onChanged: (value) =>
+                        setState(() => _selectedPaymentMethod = value!),
+                  ),
+                ),
+                Expanded(
+                  child: RadioListTile<String>(
+                    title: const Text('Card'),
+                    value: 'card',
+                    groupValue: _selectedPaymentMethod,
+                    onChanged: (value) =>
+                        setState(() => _selectedPaymentMethod = value!),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 16),
-            const SizedBox(height: 16),
+            const SizedBox(height: 8),
+            Form(
+              key: _formKey,
+              child: Column(
+                children: [
+                  if (_selectedPaymentMethod == 'mpesa')
+                    TextFormField(
+                      controller: _phoneController,
+                      decoration: const InputDecoration(
+                        labelText: "M-Pesa Phone Number",
+                        hintText: "2547XXXXXXXX",
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.phone),
+                      ),
+                      keyboardType: TextInputType.phone,
+                      validator: (v) =>
+                          v!.isEmpty ? 'Enter phone number' : null,
+                    )
+                  else ...[
+                    TextFormField(
+                      controller: _cardNumberController,
+                      decoration: const InputDecoration(
+                        labelText: 'Card Number',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.credit_card),
+                      ),
+                      keyboardType: TextInputType.number,
+                      validator: (v) => v!.isEmpty ? 'Enter card number' : null,
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextFormField(
+                            controller: _expiryController,
+                            decoration: const InputDecoration(
+                              labelText: 'MM/YY',
+                              border: OutlineInputBorder(),
+                            ),
+                            validator: (v) => v!.isEmpty ? 'Required' : null,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: TextFormField(
+                            controller: _cvvController,
+                            decoration: const InputDecoration(
+                              labelText: 'CVV',
+                              border: OutlineInputBorder(),
+                            ),
+                            keyboardType: TextInputType.number,
+                            obscureText: true,
+                            validator: (v) => v!.isEmpty ? 'Required' : null,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
             SizedBox(
               width: double.infinity,
               child: Obx(
                 () => ElevatedButton(
                   onPressed: controller.isLoading.value
                       ? null
-                      : () async {
-                          if (_phoneController.text.isEmpty) {
-                            Get.snackbar(
-                              'Input Required',
-                              'Please enter your M-Pesa phone number.',
-                              backgroundColor: Colors.orange,
-                            );
-                            return;
-                          }
-
-                          bool success = await controller.processCheckout(
-                            _phoneController.text,
-                          );
-                          if (success && context.mounted) {
-                            Get.to(() => const PaymentScreen());
-                          } else if (!success) {
-                            Get.snackbar(
-                              'Order Failed',
-                              'Could not place order. Please try again.',
-                              snackPosition: SnackPosition.BOTTOM,
-                              backgroundColor: Colors.red,
-                              colorText: Colors.white,
-                            );
-                          }
+                      : () {
+                          if (!_formKey.currentState!.validate()) return;
+                          _handlePayment(controller);
                         },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color.fromARGB(255, 255, 0, 0),
@@ -119,14 +193,7 @@ class CheckoutScreen extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
                   child: controller.isLoading.value
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
-                          ),
-                        )
+                      ? const CircularProgressIndicator(color: Colors.white)
                       : const Text(
                           'Place Order',
                           style: TextStyle(fontSize: 18),
@@ -138,5 +205,46 @@ class CheckoutScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _handlePayment(OrderController controller) async {
+    if (_selectedPaymentMethod == 'mpesa') {
+      bool success = await controller.processCheckout(_phoneController.text);
+      if (success) {
+        Get.snackbar(
+          'Success',
+          'M-Pesa payment initiated!',
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
+        Get.back();
+      } else {
+        Get.snackbar('Error', 'Payment failed', backgroundColor: Colors.red);
+      }
+    } else {
+      // Simulate Card Payment logic
+      controller.isLoading.value = true;
+      await Future.delayed(const Duration(seconds: 2));
+      controller.isLoading.value = false;
+
+      controller.rentalHistory.addAll(controller.orders);
+      controller.orders.clear();
+      Get.snackbar(
+        'Success',
+        'Card payment processed successfully!',
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+      );
+      Get.back();
+    }
+  }
+
+  @override
+  void dispose() {
+    _phoneController.dispose();
+    _cardNumberController.dispose();
+    _expiryController.dispose();
+    _cvvController.dispose();
+    super.dispose();
   }
 }

@@ -7,7 +7,7 @@ import '../models/product_model.dart';
 class ApiService {
   // Use '10.0.2.2' for Android Emulator to refer to your PC's localhost.
   // If using a physical device, replace this with your PC's IP (e.g., 192.168.1.5)
-  static const String baseUrl = 'http://10.8.36.131/av_rental_api/api.php';
+  static const String baseUrl = 'http://10.7.6.169/av_rental_api/api.php';
 
   // New method for user registration
   Future<Map<String, dynamic>> registerUser(
@@ -167,7 +167,11 @@ class ApiService {
     }
   }
 
-  Future<bool> submitOrder(int userId, List<dynamic> orders) async {
+  Future<bool> submitOrder(
+    int userId,
+    int paymentId,
+    List<Map<String, dynamic>> orderItems,
+  ) async {
     try {
       final response = await http
           .post(
@@ -176,10 +180,12 @@ class ApiService {
             body: jsonEncode({
               "action": "place_order",
               "user_id": userId,
-              "orders": orders,
+              "payment_id": paymentId, // Link to the payment
+              "order_items": orderItems, // List of individual items
             }),
           )
           .timeout(const Duration(seconds: 10));
+      print("Order Submit Response: ${response.body}");
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -188,6 +194,8 @@ class ApiService {
       }
       return false;
     } catch (e) {
+      // Catch any exception during the HTTP request or JSON decoding
+      print("Error submitting order: $e");
       return false;
     }
   }
@@ -195,6 +203,7 @@ class ApiService {
   Future<Map<String, dynamic>> initiateMpesaPayment(
     String phoneNumber,
     double amount,
+    int userId, // Add userId
   ) async {
     try {
       final response = await http
@@ -204,11 +213,13 @@ class ApiService {
             body: jsonEncode({
               "action": "stk_push",
               "phone_number": phoneNumber,
-              "amount": amount
-                  .toInt(), // Safaricom expects integers for STK push in sandbox usually
+              "amount": amount, // Send as double
+              "user_id": userId, // Send userId
+              "platform": "M-Pesa", // Indicate payment platform
             }),
           )
           .timeout(const Duration(seconds: 15));
+      print("M-Pesa API Response: ${response.body}");
 
       return jsonDecode(response.body);
     } catch (e) {
