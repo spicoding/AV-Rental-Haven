@@ -3,15 +3,14 @@ class Product {
   final String productName;
   final String? productDescription; // Nullable if description is optional
   final double unitPrice;
-  // You might add an image URL here if your products have images in the DB
-  // final String? imageUrl;
+  final String? imageUrl;
 
   Product({
     required this.productId,
     required this.productName,
     this.productDescription,
     required this.unitPrice,
-    // this.imageUrl,
+    this.imageUrl,
   });
 
   // Factory constructor to create a Product from a JSON map (e.g., from API response)
@@ -21,7 +20,7 @@ class Product {
       productName: json['product_name'] as String,
       productDescription: json['product_description'] as String?,
       unitPrice: double.parse(json['unit_price'].toString()),
-      // imageUrl: json['image_url'] as String?,
+      imageUrl: json['image'] as String?,
     );
   }
 

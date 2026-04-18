@@ -42,9 +42,12 @@ class OrderController extends GetxController {
       (item) => item.product.productId == product.productId,
     );
     if (existingItemIndex != -1) {
-      // For simplicity, we'll just add a new item. For a real cart, you'd update quantity.
-      orders.add(
-        CartItem.fromProduct(product, quantity: 1, imageUrl: imageUrl),
+      // Increment quantity if item already exists in cart
+      final existingItem = orders[existingItemIndex];
+      orders[existingItemIndex] = CartItem.fromProduct(
+        existingItem.product,
+        quantity: existingItem.quantity + 1,
+        imageUrl: existingItem.imageUrl ?? imageUrl,
       );
     } else {
       orders.add(
@@ -112,13 +115,9 @@ class OrderController extends GetxController {
       );
 
       // 3. Map UI items for the order
-      final databaseReadyOrders = orders.map((item) {
-        return item.toDatabaseMap(
-          location: "Main Campus", // Replace with actual location logic
-          userId: currentUserId.value, // Use the dynamic user ID
-          paymentId: paymentId,
-        );
-      }).toList();
+      final databaseReadyOrders = orders
+          .map((item) => item.toOrderItemMap())
+          .toList();
 
       bool success = await _apiService.submitOrder(
         currentUserId.value,
@@ -182,13 +181,9 @@ class OrderController extends GetxController {
       final int paymentId = int.parse(
         savePaymentResponse['payment_id'].toString(),
       );
-      final databaseReadyOrders = orders.map((item) {
-        return item.toDatabaseMap(
-          location: "Main Campus",
-          userId: currentUserId.value,
-          paymentId: paymentId,
-        );
-      }).toList();
+      final databaseReadyOrders = orders
+          .map((item) => item.toOrderItemMap())
+          .toList();
 
       bool success = await _apiService.submitOrder(
         currentUserId.value,
