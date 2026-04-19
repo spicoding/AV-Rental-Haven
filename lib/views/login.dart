@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/configs/colors.dart';
-import 'package:flutter_application_1/controllers/logincontroller.dart';
+import 'package:av_rental_haven/configs/colors.dart';
+import 'package:av_rental_haven/controllers/logincontroller.dart';
 import 'package:get/get.dart';
 import 'orders.dart'; // Import to access OrderController (already imported in LoginController)
 
@@ -13,11 +13,24 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   // Initialize controllers inside the State to manage lifecycle properly
-  final OrderController ordersController = Get.put(OrderController());
-  final LoginController loginController = Get.put(LoginController());
+  // Use Get.find if they are already initialized, or Get.put if this is the entry point
+  late final OrderController ordersController;
+  late final LoginController loginController;
 
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    // Ensure controllers are available
+    ordersController = Get.isRegistered<OrderController>()
+        ? Get.find<OrderController>()
+        : Get.put(OrderController());
+    loginController = Get.isRegistered<LoginController>()
+        ? Get.find<LoginController>()
+        : Get.put(LoginController());
+  }
 
   @override
   void dispose() {
@@ -39,7 +52,7 @@ class _LoginPageState extends State<LoginPage> {
               children: [
                 Transform.translate(
                   offset: const Offset(0, -54),
-                  child: Image.asset("assets/images.png", width: 150),
+                  child: Image.asset("assets/app_logo.png", width: 150),
                 ),
                 const SizedBox(height: 20),
                 Padding(

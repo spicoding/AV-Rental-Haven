@@ -8,7 +8,7 @@ import '../models/payment_model.dart';
 class ApiService {
   // Use '10.0.2.2' for Android Emulator to refer to your PC's localhost.
   // If using a physical device, replace this with your PC's IP (e.g., 192.168.1.5)
-  static const String baseUrl = 'http://10.7.6.169/av_rental_api/api.php';
+  static const String baseUrl = 'http://192.168.1.10/av_rental_api/api.php';
 
   // New method for user registration
   Future<Map<String, dynamic>> registerUser(

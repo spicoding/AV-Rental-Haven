@@ -1,14 +1,42 @@
-import 'package:get/get_rx/src/rx_types/rx_types.dart';
-import 'package:get/get_state_manager/src/simple/get_controllers.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import '../services/api_service.dart';
 
 class SignUpController extends GetxController {
-  var username = "".obs;
-  var email = "".obs;
-  var password = "".obs;
+  var isLoading = false.obs;
+  var isObscured = true.obs;
+  final ApiService _apiService = ApiService();
 
-  signUp(user, email, pass) {
-    username.value = user;
-    email.value = email;
-    password.value = pass;
+  void togglePassword() {
+    isObscured.value = !isObscured.value;
+  }
+
+  Future<void> register(String fullName, String email, String password) async {
+    try {
+      isLoading.value = true;
+
+      final result = await _apiService.registerUser(fullName, email, password);
+
+      if (result['status'] == 'success') {
+        Get.snackbar(
+          "Success",
+          "Account created successfully",
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
+        Get.offAllNamed('/login');
+      } else {
+        Get.snackbar(
+          "Error",
+          result['message'] ?? "Registration failed",
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+      }
+    } finally {
+      isLoading.value = false;
+    }
   }
 }
