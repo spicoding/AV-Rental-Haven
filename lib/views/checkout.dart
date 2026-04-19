@@ -65,15 +65,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       contentPadding: EdgeInsets.zero,
                       leading: ClipRRect(
                         borderRadius: BorderRadius.circular(4),
-                        child: Image.asset(
-                          item.imageUrl ??
-                              'assets/placeholder.png', // Use item.imageUrl
-                          width: 50,
-                          height: 50,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stack) =>
-                              const Icon(Icons.image_not_supported),
-                        ),
+                        child: _buildItemImage(item.imageUrl),
                       ),
                       title: Text(
                         item.product.productName,
@@ -249,5 +241,35 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     _expiryController.dispose();
     _cvvController.dispose();
     super.dispose();
+  }
+
+  Widget _buildItemImage(String? path) {
+    if (path == null) return _imagePlaceholder();
+
+    if (path.startsWith('http')) {
+      return Image.network(
+        path,
+        width: 50,
+        height: 50,
+        fit: BoxFit.cover,
+        errorBuilder: (c, e, s) => _imagePlaceholder(),
+      );
+    }
+    return Image.asset(
+      path,
+      width: 50,
+      height: 50,
+      fit: BoxFit.cover,
+      errorBuilder: (c, e, s) => _imagePlaceholder(),
+    );
+  }
+
+  Widget _imagePlaceholder() {
+    return Container(
+      width: 50,
+      height: 50,
+      color: Colors.grey.shade200,
+      child: const Icon(Icons.image_not_supported, color: Colors.grey),
+    );
   }
 }

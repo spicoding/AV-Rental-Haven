@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'orders.dart';
 import '../models/product_model.dart';
+import 'dart:io';
 
 class ProductsScreen extends StatelessWidget {
   ProductsScreen({super.key});
@@ -105,21 +106,7 @@ class _ProductCardItemState extends State<ProductCardItem> {
                     borderRadius: const BorderRadius.vertical(
                       top: Radius.circular(12),
                     ),
-                    child: Image.asset(
-                      widget.product.imageUrl ?? 'assets/placeholder.png',
-                      fit: BoxFit.cover,
-                      width: double.infinity,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          color: Colors.grey.shade200,
-                          child: const Icon(
-                            Icons.image_not_supported,
-                            size: 50,
-                            color: Colors.grey,
-                          ),
-                        );
-                      },
-                    ),
+                    child: _buildImage(widget.product.imageUrl),
                   ),
                 ),
                 Padding(
@@ -195,6 +182,35 @@ class _ProductCardItemState extends State<ProductCardItem> {
       ),
     );
   }
+
+  Widget _buildImage(String? path) {
+    if (path == null) return _errorPlaceholder();
+    if (path.startsWith('http')) {
+      return Image.network(
+        path,
+        fit: BoxFit.cover,
+        width: double.infinity,
+        errorBuilder: (context, error, stackTrace) => _errorPlaceholder(),
+      );
+    }
+    return Image.asset(
+      path,
+      fit: BoxFit.cover,
+      width: double.infinity,
+      errorBuilder: (context, error, stackTrace) => _errorPlaceholder(),
+    );
+  }
+
+  Widget _errorPlaceholder() {
+    return Container(
+      color: Colors.grey.shade200,
+      child: const Icon(
+        Icons.image_not_supported,
+        size: 50,
+        color: Colors.grey,
+      ),
+    );
+  }
 }
 
 class ProductDetailsScreen extends StatelessWidget {
@@ -214,25 +230,7 @@ class ProductDetailsScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Image.asset(
-              product.imageUrl ?? 'assets/placeholder.png',
-              width: double.infinity,
-              height: 300,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  height: 300,
-                  color: Colors.grey.shade200,
-                  child: const Center(
-                    child: Icon(
-                      Icons.image_not_supported,
-                      size: 50,
-                      color: Colors.grey,
-                    ),
-                  ),
-                );
-              },
-            ),
+            _buildDetailImage(product.imageUrl),
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
@@ -301,6 +299,36 @@ class ProductDetailsScreen extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildDetailImage(String? path) {
+    if (path == null) return _detailErrorPlaceholder();
+    if (path.startsWith('http')) {
+      return Image.network(
+        path,
+        width: double.infinity,
+        height: 300,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => _detailErrorPlaceholder(),
+      );
+    }
+    return Image.asset(
+      path,
+      width: double.infinity,
+      height: 300,
+      fit: BoxFit.cover,
+      errorBuilder: (c, e, s) => _detailErrorPlaceholder(),
+    );
+  }
+
+  Widget _detailErrorPlaceholder() {
+    return Container(
+      height: 300,
+      color: Colors.grey.shade200,
+      child: const Center(
+        child: Icon(Icons.image_not_supported, size: 50, color: Colors.grey),
       ),
     );
   }

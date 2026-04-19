@@ -7,8 +7,11 @@ import '../models/user_model.dart';
 
 class LoginController extends GetxController {
   final ApiService _apiService = ApiService();
-  // Use Get.find since OrderController is already initialized in the View
-  late final OrderController _orderController = Get.find<OrderController>();
+
+  // Safely find the OrderController or initialize it if it's missing
+  OrderController get _orderController => Get.isRegistered<OrderController>()
+      ? Get.find<OrderController>()
+      : Get.put(OrderController(), permanent: true);
 
   var isLoading = false.obs;
   var isObscured = true.obs;

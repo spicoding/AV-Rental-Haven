@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'orders.dart';
+import '../models/user_model.dart';
+import '../services/api_service.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -9,13 +12,20 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
-  // Controllers to pre-fill and edit the user's current data
-  final TextEditingController _nameController = TextEditingController(
-    text: 'John Doe',
-  );
-  final TextEditingController _emailController = TextEditingController(
-    text: 'johndoe@example.com',
-  );
+  late final OrderController _orderController;
+  late final TextEditingController _nameController;
+  late final TextEditingController _emailController;
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _orderController = Get.find<OrderController>();
+    // Initialize controllers with current user data from OrderController
+    final user = _orderController.currentUser.value;
+    _nameController = TextEditingController(text: user?.fullName ?? '');
+    _emailController = TextEditingController(text: user?.emailAddress ?? '');
+  }
 
   @override
   void dispose() {
@@ -90,27 +100,77 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   backgroundColor: const Color.fromARGB(255, 255, 0, 0),
                   foregroundColor: Colors.white,
                 ),
-                onPressed: () {
-                  // Navigate back to the Profile screen first
-                  Get.back();
-                  // Show a success message
-                  Get.snackbar(
-                    'Success',
-                    'Profile updated successfully',
-                    snackPosition: SnackPosition.BOTTOM,
-                    backgroundColor: Colors.green,
-                    colorText: Colors.white,
-                  );
-                },
-                child: const Text(
-                  'Save Changes',
-                  style: TextStyle(fontSize: 16),
-                ),
+                onPressed: _isLoading ? null : _saveProfile,
+                child: _isLoading
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : const Text(
+                        'Save Changes',
+                        style: TextStyle(fontSize: 16),
+                      ),
               ),
             ),
           ],
         ),
       ),
     );
+  }
+
+  Future<void> _saveProfile() async {
+    final name = _nameController.text.trim();
+    final email = _emailController.text.trim();
+    final userId = _orderController.currentUserId.value;
+
+    if (userId == 0) {
+      Get.snackbar(
+        'Error',
+        'Please log in to update your profile.',
+        backgroundColor: Colors.orange,
+        colorText: Colors.white,
+      );
+      return;
+    }
+
+    if (name.isEmpty || email.isEmpty) {
+      Get.snackbar(
+        'Error',
+        'Please fill in all fields',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    final apiService = ApiService();
+    final response = await apiService.updateUser(
+      userId: userId,
+      fullName: name,
+      email: email,
+    );
+
+    setState(() => _isLoading = false);
+
+    if (response['status'] == 'success') {
+      // Update local state in OrderController to reflect changes in UI
+      _orderController.setUser(
+        User(id: userId, fullName: name, emailAddress: email),
+      );
+
+      Get.back();
+      Get.snackbar(
+        'Success',
+        'Profile updated successfully',
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+      );
+    } else {
+      Get.snackbar(
+        'Error',
+        response['message'] ?? 'Update failed',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    }
   }
 }

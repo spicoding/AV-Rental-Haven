@@ -6,6 +6,7 @@ import '../models/cart_item_model.dart';
 import '../models/user_model.dart';
 import '../models/payment_model.dart';
 import 'checkout.dart';
+import 'dart:io';
 
 class OrderController extends GetxController {
   // Reactive list of items in the cart
@@ -32,6 +33,13 @@ class OrderController extends GetxController {
     isLoading.value = false;
   }
 
+  // Call this method from your LoginController or SignUpController
+  // after a successful API response to update the profile UI
+  void setUser(User user) {
+    currentUser.value = user;
+    currentUserId.value = user.id ?? 0;
+  }
+
   // Added to fix products.dart error
   void addOrder(Map<String, dynamic> productData) {
     // Convert mock map data from products.dart to the Product model
@@ -47,6 +55,8 @@ class OrderController extends GetxController {
       unitPrice: price,
     );
 
+    // Now that we use relative paths in the DB, we just pass the image as is
+    // ApiService handles the full URL construction
     addItem(product, imageUrl: productData['image']);
   }
 
@@ -83,10 +93,6 @@ class OrderController extends GetxController {
 
   Future<bool> processCheckout(String phoneNumber) async {
     if (orders.isEmpty) return false;
-    if (currentUserId.value == 0) {
-      Get.snackbar("Error", "Please log in to place an order.");
-      return false;
-    }
 
     isLoading.value = true;
     try {
@@ -129,9 +135,12 @@ class OrderController extends GetxController {
       );
 
       // 3. Map UI items for the order
-      final databaseReadyOrders = orders
-          .map((item) => item.toOrderItemMap())
-          .toList();
+      final databaseReadyOrders = orders.map((item) {
+        return {
+          ...item.toOrderItemMap(),
+          'image': item.imageUrl, // Explicitly include the absolute path
+        };
+      }).toList();
 
       bool success = await _apiService.submitOrder(
         currentUserId.value,
@@ -156,10 +165,6 @@ class OrderController extends GetxController {
     required String cvv,
   }) async {
     if (orders.isEmpty) return false;
-    if (currentUserId.value == 0) {
-      Get.snackbar("Error", "Please log in to place an order.");
-      return false;
-    }
 
     isLoading.value = true;
     try {
@@ -195,9 +200,12 @@ class OrderController extends GetxController {
       final int paymentId = int.parse(
         savePaymentResponse['payment_id'].toString(),
       );
-      final databaseReadyOrders = orders
-          .map((item) => item.toOrderItemMap())
-          .toList();
+      final databaseReadyOrders = orders.map((item) {
+        return {
+          ...item.toOrderItemMap(),
+          'image': item.imageUrl, // Explicitly include the absolute path
+        };
+      }).toList();
 
       bool success = await _apiService.submitOrder(
         currentUserId.value,
@@ -240,12 +248,7 @@ class OrdersScreen extends StatelessWidget {
                 itemBuilder: (context, index) {
                   final item = controller.orders[index];
                   return ListTile(
-                    leading: Image.asset(
-                      item.imageUrl ?? 'assets/placeholder.png',
-                      width: 50,
-                      height: 50,
-                      fit: BoxFit.cover,
-                    ),
+                    leading: _buildLeadingImage(item.imageUrl),
                     title: Text(item.product.productName),
                     subtitle: Text('Quantity: ${item.quantity}'),
                     trailing: Text(
@@ -289,6 +292,36 @@ class OrdersScreen extends StatelessWidget {
           ],
         );
       }),
+    );
+  }
+
+  Widget _buildLeadingImage(String? path) {
+    if (path == null) return _imagePlaceholder();
+
+    if (path.startsWith('http')) {
+      return Image.network(
+        path,
+        width: 50,
+        height: 50,
+        fit: BoxFit.cover,
+        errorBuilder: (c, e, s) => _imagePlaceholder(),
+      );
+    }
+    return Image.asset(
+      path,
+      width: 50,
+      height: 50,
+      fit: BoxFit.cover,
+      errorBuilder: (c, e, s) => _imagePlaceholder(),
+    );
+  }
+
+  Widget _imagePlaceholder() {
+    return Container(
+      width: 50,
+      height: 50,
+      color: Colors.grey.shade200,
+      child: const Icon(Icons.image_not_supported, color: Colors.grey),
     );
   }
 }

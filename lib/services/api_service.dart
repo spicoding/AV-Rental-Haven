@@ -9,6 +9,7 @@ class ApiService {
   // Use '10.0.2.2' for Android Emulator to refer to your PC's localhost.
   // If using a physical device, replace this with your PC's IP (e.g., 192.168.1.5)
   static const String baseUrl = 'http://192.168.1.10/av_rental_api/api.php';
+  static const String imageBaseUrl = 'http://192.168.1.10/av_rental_api/';
 
   // New method for user registration
   Future<Map<String, dynamic>> registerUser(
@@ -143,6 +144,38 @@ class ApiService {
     }
   }
 
+  Future<Map<String, dynamic>> updateUser({
+    required int userId,
+    required String fullName,
+    required String email,
+  }) async {
+    try {
+      final response = await http
+          .post(
+            Uri.parse(baseUrl),
+            headers: {"Content-Type": "application/json"},
+            body: jsonEncode({
+              "action": "update_profile",
+              "user_id": userId,
+              "full_name": fullName,
+              "email_address": email,
+            }),
+          )
+          .timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        return {
+          "status": "error",
+          "message": "Server error (${response.statusCode})",
+        };
+      }
+    } catch (e) {
+      return {"status": "error", "message": e.toString()};
+    }
+  }
+
   // Method to fetch products from the database
   Future<List<Product>> fetchProducts() async {
     try {
@@ -157,9 +190,13 @@ class ApiService {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['status'] == 'success') {
-          return (data['products'] as List)
-              .map((e) => Product.fromJson(e))
-              .toList();
+          return (data['products'] as List).map((e) {
+            // Prepend base URL to image path if it exists
+            if (e['image'] != null && !e['image'].startsWith('http')) {
+              e['image'] = "$imageBaseUrl${e['image']}";
+            }
+            return Product.fromJson(e);
+          }).toList();
         }
       }
       return []; // Return empty list on failure or no products
