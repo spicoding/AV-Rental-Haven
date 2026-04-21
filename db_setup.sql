@@ -53,4 +53,5 @@ INSERT INTO products (product_name, product_description, category, unit_price, i
 ('Absen 2.9mm SA-C Flexible Displays', 'High-res LED video panels.', 'Visual', 15000.00, 'assets/sa-series-1920X900-sa-series-1920X900LED panels.jpg'),
 ('Blackmagic ATEM Television Studio 4K8', 'Live production switcher.', 'Visual', 19999.00, 'assets/ATEM Television studio 4K8.jpg'),
 ('Sony FX6 Cinema Camera', 'Professional cinema line camera.', 'Visual', 25000.00, 'assets/Sony FX6.jpg'),
-('Hollyland Solidcom M1 Pro Wireless Intercom', 'Professional wireless intercom.', 'Accessories', 29999.00, 'assets/Hollylans Solidcom M1 Pro.png');
+('Hollyland Solidcom M1 Pro Wireless Intercom', 'Professional wireless intercom.', 'Accessories', 29999.00, 'assets/Hollylans Solidcom M1 Pro.png'),
+('System Test Item', '1 Ksh item for testing payment and order flows.', 'Test', 1.00, 'assets/XLR.png');

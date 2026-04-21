@@ -203,7 +203,7 @@ class OrderController extends GetxController {
       final databaseReadyOrders = orders.map((item) {
         return {
           ...item.toOrderItemMap(),
-          'image': item.imageUrl, // Explicitly include the absolute path
+          'image': item.imageUrl, // Store the web URL path for the order item
         };
       }).toList();
 

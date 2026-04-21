@@ -6,8 +6,9 @@ import '../models/product_model.dart';
 import '../models/payment_model.dart';
 
 class ApiService {
-  // Use '10.0.2.2' for Android Emulator to refer to your PC's localhost.
-  // If using a physical device, replace this with your PC's IP (e.g., 192.168.1.5)
+  // Consistency Check: Ensure both base URLs use the same IP address.
+  // Currently, baseUrl (1.10) and imageBaseUrl (100.25) are on different subnets.
+  // For your Samsung device, use the IP where your XAMPP server is hosted.
   static const String baseUrl = 'http://192.168.1.10/av_rental_api/api.php';
   static const String imageBaseUrl = 'http://192.168.1.10/av_rental_api/';
 
