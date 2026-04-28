@@ -5,6 +5,7 @@ import '../models/product_model.dart';
 import '../models/cart_item_model.dart';
 import '../models/user_model.dart';
 import '../models/payment_model.dart';
+import '../views/homescreen.dart';
 import 'checkout.dart';
 import 'dart:io';
 
@@ -33,11 +34,18 @@ class OrderController extends GetxController {
     isLoading.value = false;
   }
 
+  Future<void> fetchRentalHistory() async {
+    if (currentUserId.value == 0) return;
+    final history = await _apiService.fetchRentalHistory(currentUserId.value);
+    rentalHistory.assignAll(history);
+  }
+
   // Call this method from your LoginController or SignUpController
   // after a successful API response to update the profile UI
   void setUser(User user) {
     currentUser.value = user;
     currentUserId.value = user.id ?? 0;
+    fetchRentalHistory();
   }
 
   // Added to fix products.dart error
@@ -113,13 +121,60 @@ class OrderController extends GetxController {
 
       final checkoutRequestId = mpesaResponse['CheckoutRequestID'].toString();
 
+      if (checkoutRequestId == "null") {
+        Get.snackbar("Error", "Invalid checkout reference received.");
+        return false;
+      }
+
+      // --- Transaction Verification (Polling) ---
+      bool isVerified = false;
+      int attempts = 0;
+      const int maxAttempts = 12; // Wait for up to 60 seconds (5s * 12)
+
+      while (attempts < maxAttempts && !isVerified) {
+        await Future.delayed(const Duration(seconds: 5));
+        final statusCheck = await _apiService.checkMpesaStatus(
+          checkoutRequestId,
+        );
+
+        if (statusCheck['status'] == 'success') {
+          isVerified = true;
+          break;
+        } else if (statusCheck['status'] == 'failed') {
+          Get.snackbar(
+            "Payment Failed",
+            statusCheck['message'] ?? "M-Pesa transaction failed.",
+          );
+          return false;
+        }
+
+        // Stop polling if we encounter a server-side or authentication error
+        if (statusCheck['status'] == 'error') {
+          Get.snackbar(
+            "Payment Status Error",
+            statusCheck['message'] ??
+                "Could not verify payment with the server.",
+          );
+          return false;
+        }
+        attempts++;
+      }
+
+      if (!isVerified) {
+        Get.snackbar(
+          "Verification Timeout",
+          "We haven't received confirmation yet. Please check your history later.",
+        );
+        return false;
+      }
+
       // 2. Save Payment Record to DB
       final payment = PaymentModel(
         userId: currentUserId.value,
         paymentMethod: 'mpesa',
         amount: totalAmount,
         transactionReference: checkoutRequestId,
-        status: 'pending',
+        status: 'completed',
         phoneNumber: phoneNumber,
       );
 
@@ -145,11 +200,24 @@ class OrderController extends GetxController {
       bool success = await _apiService.submitOrder(
         currentUserId.value,
         paymentId,
+        totalAmount,
         databaseReadyOrders,
       );
 
       if (success) {
         orders.clear(); // Empty cart on success
+        await fetchRentalHistory(); // Refresh history to reflect the new rental
+
+        // Direct to homescreen and stay logged in
+        Get.offAll(() => const HomeScreen());
+        Get.snackbar(
+          "Success",
+          "Payment successful and order placed!",
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 5),
+        );
       }
       return success;
     } catch (e) {
@@ -210,6 +278,7 @@ class OrderController extends GetxController {
       bool success = await _apiService.submitOrder(
         currentUserId.value,
         paymentId,
+        totalAmount,
         databaseReadyOrders,
       );
 

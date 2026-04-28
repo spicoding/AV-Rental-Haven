@@ -9,8 +9,9 @@ class ApiService {
   // Consistency Check: Ensure both base URLs use the same IP address.
   // Currently, baseUrl (1.10) and imageBaseUrl (100.25) are on different subnets.
   // For your Samsung device, use the IP where your XAMPP server is hosted.
-  static const String baseUrl = 'http://192.168.1.10/av_rental_api/api.php';
-  static const String imageBaseUrl = 'http://192.168.1.10/av_rental_api/';
+  static const String serverIp = '192.168.100.4';
+  static const String baseUrl = 'http://$serverIp/av_rental_api/api.php';
+  static const String imageBaseUrl = 'http://$serverIp/av_rental_api/';
 
   // New method for user registration
   Future<Map<String, dynamic>> registerUser(
@@ -200,8 +201,10 @@ class ApiService {
           }).toList();
         }
       }
+      print("Server returned status: ${response.statusCode} for fetchProducts");
       return []; // Return empty list on failure or no products
     } catch (e) {
+      print("Exception during fetchProducts: $e");
       return [];
     }
   }
@@ -209,6 +212,7 @@ class ApiService {
   Future<bool> submitOrder(
     int userId,
     int paymentId,
+    double totalAmount,
     List<Map<String, dynamic>> orderItems,
   ) async {
     try {
@@ -220,6 +224,7 @@ class ApiService {
               "action": "place_order",
               "user_id": userId,
               "payment_id": paymentId, // Link to the payment
+              "total_amount": totalAmount,
               "order_items": orderItems, // List of individual items
             }),
           )
@@ -263,6 +268,70 @@ class ApiService {
       return jsonDecode(response.body);
     } catch (e) {
       return {"status": "error", "message": e.toString()};
+    }
+  }
+
+  /// Verifies the status of an M-Pesa STK push via the backend
+  Future<Map<String, dynamic>> checkMpesaStatus(
+    String checkoutRequestId,
+  ) async {
+    if (checkoutRequestId.isEmpty || checkoutRequestId == "null") {
+      return {"status": "error", "message": "Invalid Checkout Request ID"};
+    }
+    try {
+      final response = await http
+          .post(
+            Uri.parse(baseUrl),
+            headers: {"Content-Type": "application/json"},
+            body: jsonEncode({
+              "action": "check_status",
+              "checkout_request_id":
+                  checkoutRequestId, // Using snake_case for consistency
+            }),
+          )
+          .timeout(const Duration(seconds: 15));
+
+      if (response.body.isEmpty) {
+        return {
+          "status": "error",
+          "message": "Server returned an empty response.",
+        };
+      }
+
+      final decoded = jsonDecode(response.body);
+      print("M-Pesa Status Response: $decoded");
+      return decoded;
+    } on TimeoutException {
+      return {"status": "error", "message": "The status check timed out."};
+    } catch (e) {
+      return {"status": "error", "message": e.toString()};
+    }
+  }
+
+  /// Fetches the rental history for a specific user
+  Future<List<dynamic>> fetchRentalHistory(int userId) async {
+    try {
+      final response = await http
+          .post(
+            Uri.parse(baseUrl),
+            headers: {"Content-Type": "application/json"},
+            body: jsonEncode({
+              "action": "get_rental_history",
+              "user_id": userId,
+            }),
+          )
+          .timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['status'] == 'success') {
+          return data['history'] ?? [];
+        }
+      }
+      return [];
+    } catch (e) {
+      print("Error fetching rental history: $e");
+      return [];
     }
   }
 

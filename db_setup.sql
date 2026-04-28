@@ -1,7 +1,30 @@
 -- Recreate the database structure with absolute file paths
+DROP TABLE IF EXISTS payments;
 DROP TABLE IF EXISTS order_items;
 DROP TABLE IF EXISTS orders;
 DROP TABLE IF EXISTS products;
+DROP TABLE IF EXISTS users;
+
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    full_name VARCHAR(255) NOT NULL,
+    email_address VARCHAR(255) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE payments (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    payment_method VARCHAR(50) NOT NULL,
+    amount DECIMAL(10, 2) NOT NULL,
+    transaction_reference VARCHAR(255) NOT NULL,
+    status VARCHAR(50) NOT NULL,
+    phone_number VARCHAR(20),
+    card_last_four VARCHAR(4),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
 
 CREATE TABLE products (
     product_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -15,7 +38,7 @@ CREATE TABLE products (
 CREATE TABLE orders (
     order_id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
-    payment_id INT NOT NULL,
+    payment_id INT,
     total_amount DECIMAL(10, 2) NOT NULL,
     status VARCHAR(50) DEFAULT 'pending',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

@@ -19,7 +19,12 @@ class LoginController extends GetxController {
   Future<void> login(String email, String password) async {
     // 1. Hardcoded Admin Bypass (Optional)
     if (email == "admin" && password == "34493370") {
-      _orderController.currentUserId.value = 999; // Mock Admin ID
+      final adminUser = User(
+        id: 999,
+        fullName: "System Admin",
+        emailAddress: "admin@avhaven.com",
+      );
+      _orderController.setUser(adminUser);
       Get.offAll(() => const HomeScreen());
       Get.snackbar("Success", "Logged in as Admin");
       return;
@@ -34,8 +39,7 @@ class LoginController extends GetxController {
       // Capture full user details from the response
       try {
         final user = User.fromJson(response);
-        _orderController.currentUser.value = user;
-        _orderController.currentUserId.value = user.id ?? 0;
+        _orderController.setUser(user);
       } catch (e) {
         print("Error parsing user data: $e");
         Get.snackbar("Error", "Failed to process user data from server");
