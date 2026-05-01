@@ -9,7 +9,7 @@ class ApiService {
   // Consistency Check: Ensure both base URLs use the same IP address.
   // Currently, baseUrl (1.10) and imageBaseUrl (100.25) are on different subnets.
   // For your Samsung device, use the IP where your XAMPP server is hosted.
-  static const String serverIp = '192.168.100.4';
+  static const String serverIp = '10.32.81.67';
   static const String baseUrl = 'http://$serverIp/av_rental_api/api.php';
   static const String imageBaseUrl = 'http://$serverIp/av_rental_api/';
 
@@ -209,7 +209,7 @@ class ApiService {
     }
   }
 
-  Future<bool> submitOrder(
+  Future<Map<String, dynamic>> submitOrder(
     int userId,
     int paymentId,
     double totalAmount,
@@ -223,24 +223,24 @@ class ApiService {
             body: jsonEncode({
               "action": "place_order",
               "user_id": userId,
-              "payment_id": paymentId, // Link to the payment
+              "payment_id": paymentId,
               "total_amount": totalAmount,
-              "order_items": orderItems, // List of individual items
+              "order_items": orderItems,
             }),
           )
           .timeout(const Duration(seconds: 10));
       print("Order Submit Response: ${response.body}");
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        print("Order Submit Result: ${data['status']}");
-        return data['status'] == 'success';
+        return jsonDecode(response.body);
       }
-      return false;
+      return {
+        "status": "error",
+        "message": "Server returned status ${response.statusCode}",
+      };
     } catch (e) {
-      // Catch any exception during the HTTP request or JSON decoding
       print("Error submitting order: $e");
-      return false;
+      return {"status": "error", "message": e.toString()};
     }
   }
 

@@ -24,7 +24,7 @@ class CartItem {
       "product_id": product.productId,
       "quantity": quantity,
       "unit_price": product.unitPrice,
-      "total_price_for_item": itemAmount.toStringAsFixed(
+      "total_price": itemAmount.toStringAsFixed(
         2,
       ), // Format to 2 decimal places
     };

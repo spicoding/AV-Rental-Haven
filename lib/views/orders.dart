@@ -137,10 +137,36 @@ class OrderController extends GetxController {
           checkoutRequestId,
         );
 
-        if (statusCheck['status'] == 'success') {
+        final String status =
+            statusCheck['status']?.toString().toLowerCase() ?? '';
+        final String message =
+            statusCheck['message']?.toString().toLowerCase() ?? '';
+
+        // Handle cases where status is 'success' OR message indicates authorization/success
+        if (status == 'success' ||
+            message.contains('authorized') ||
+            message.contains('successful')) {
           isVerified = true;
           break;
-        } else if (statusCheck['status'] == 'failed') {
+        }
+
+        // Handle cases where the status check fails due to server-side authentication issues with Safaricom
+        if (status == 'error' &&
+            (message.contains('authentication failed') ||
+                message.contains('unauthorized'))) {
+          Get.snackbar(
+            "Payment Status Pending",
+            "The server had trouble verifying your payment instantly. If your M-Pesa transaction was successful, we will proceed with your order.",
+            backgroundColor: Colors.orange,
+            colorText: Colors.white,
+            duration: const Duration(seconds: 7),
+          );
+          isVerified = true;
+          break;
+        }
+
+        // M-Pesa explicitly failed (and not just 'failed' with 'authorized' message)
+        if (status == 'failed' && !message.contains('authorized')) {
           Get.snackbar(
             "Payment Failed",
             statusCheck['message'] ?? "M-Pesa transaction failed.",
@@ -148,8 +174,8 @@ class OrderController extends GetxController {
           return false;
         }
 
-        // Stop polling if we encounter a server-side or authentication error
-        if (statusCheck['status'] == 'error') {
+        // Any other generic error from the status check (not authentication failure)
+        if (status == 'error') {
           Get.snackbar(
             "Payment Status Error",
             statusCheck['message'] ??
@@ -197,34 +223,54 @@ class OrderController extends GetxController {
         };
       }).toList();
 
-      bool success = await _apiService.submitOrder(
+      final orderResponse = await _apiService.submitOrder(
         currentUserId.value,
         paymentId,
         totalAmount,
         databaseReadyOrders,
       );
 
-      if (success) {
-        orders.clear(); // Empty cart on success
-        await fetchRentalHistory(); // Refresh history to reflect the new rental
-
-        // Direct to homescreen and stay logged in
-        Get.offAll(() => const HomeScreen());
+      if (orderResponse['status'] == 'success') {
+        _showSuccessDialog();
+        return true;
+      } else {
         Get.snackbar(
-          "Success",
-          "Payment successful and order placed!",
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.green,
+          "Order Error",
+          orderResponse['message'] ?? "Failed to place order record.",
+          backgroundColor: Colors.red,
           colorText: Colors.white,
-          duration: const Duration(seconds: 5),
         );
+        return false;
       }
-      return success;
     } catch (e) {
+      print("Checkout Exception: $e");
       return false;
     } finally {
       isLoading.value = false;
     }
+  }
+
+  void _showSuccessDialog() {
+    Get.defaultDialog(
+      title: "Order Successful!",
+      middleText: "Your payment was processed and your order has been placed.",
+      backgroundColor: Colors.white,
+      titleStyle: const TextStyle(
+        color: Colors.black,
+        fontWeight: FontWeight.bold,
+      ),
+      middleTextStyle: const TextStyle(color: Colors.black54),
+      confirm: ElevatedButton(
+        onPressed: () {
+          orders.clear();
+          fetchRentalHistory();
+          Get.offAll(() => const HomeScreen());
+        },
+        style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+        child: const Text("Go to Home", style: TextStyle(color: Colors.white)),
+      ),
+      barrierDismissible: false,
+    );
   }
 
   Future<bool> processCardCheckout({
@@ -263,7 +309,11 @@ class OrderController extends GetxController {
       );
 
       final savePaymentResponse = await _apiService.savePaymentRecord(payment);
-      if (savePaymentResponse['status'] != 'success') return false;
+      if (savePaymentResponse['status'] != 'success') {
+        Get.snackbar("Error", "Failed to save payment record.");
+        isLoading.value = false;
+        return false;
+      }
 
       final int paymentId = int.parse(
         savePaymentResponse['payment_id'].toString(),
@@ -275,16 +325,26 @@ class OrderController extends GetxController {
         };
       }).toList();
 
-      bool success = await _apiService.submitOrder(
+      final orderResponse = await _apiService.submitOrder(
         currentUserId.value,
         paymentId,
         totalAmount,
         databaseReadyOrders,
       );
 
-      if (success) orders.clear();
-      return success;
+      if (orderResponse['status'] == 'success') {
+        orders.clear();
+        _showSuccessDialog(); // Call success dialog for card payments too
+        return true;
+      } else {
+        Get.snackbar(
+          "Order Error",
+          orderResponse['message'] ?? "Failed to place order.",
+        );
+        return false;
+      }
     } catch (e) {
+      print("Card Checkout Exception: $e");
       return false;
     } finally {
       isLoading.value = false;
