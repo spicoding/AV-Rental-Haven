@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'edit_profile.dart';
 import 'rental_history.dart';
 import 'orders.dart';
@@ -55,10 +56,11 @@ class ProfileScreen extends StatelessWidget {
             _buildProfileOption(Icons.payment, 'Payment Methods', () {}),
             _buildProfileOption(Icons.settings, 'Settings', () {}),
             const Divider(),
-            _buildProfileOption(Icons.logout, 'Log Out', () {
+            _buildProfileOption(Icons.logout, 'Log Out', () async {
               // Clear user session data on logout
+              await FirebaseAuth.instance.signOut();
               controller.currentUser.value = null;
-              controller.currentUserId.value = 0;
+              controller.currentUserId.value = '';
 
               // Navigate back to the login page
               Get.offAllNamed("/login");

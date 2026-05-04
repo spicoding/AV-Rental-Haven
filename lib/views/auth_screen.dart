@@ -63,9 +63,8 @@ class _AuthScreenState extends State<AuthScreen> {
         Get.snackbar("Success", "Account created! Please log in.");
       } else {
         // Successful login: Update user ID and return
-        final user = User.fromJson(response);
-        _orderController.currentUser.value = user;
-        _orderController.currentUserId.value = user.id ?? 0;
+        final user = response['user'] as User;
+        _orderController.setUser(user);
 
         Get.snackbar("Success", "Welcome back!");
         Get.offAll(

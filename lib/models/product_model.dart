@@ -1,5 +1,5 @@
 class Product {
-  final int productId;
+  final String productId;
   final String productName;
   final String? productDescription; // Nullable if description is optional
   final String? category;
@@ -18,7 +18,7 @@ class Product {
   // Factory constructor to create a Product from a JSON map (e.g., from API response)
   factory Product.fromJson(Map<String, dynamic> json) {
     return Product(
-      productId: int.parse(json['product_id'].toString()),
+      productId: (json['product_id'] ?? json['id']).toString(),
       productName: json['product_name'] as String,
       productDescription: json['product_description'] as String?,
       category: json['category'] as String?,

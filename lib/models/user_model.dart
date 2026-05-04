@@ -1,5 +1,5 @@
 class User {
-  final int? id; // Nullable for new users before ID is assigned by DB
+  final String? id; // Firebase UIDs are Strings
   final String fullName;
   final String emailAddress;
   // Password is not stored in the model after registration for security
@@ -10,7 +10,7 @@ class User {
   factory User.fromJson(Map<String, dynamic> json) {
     final idValue = json['user_id'] ?? json['id'];
     return User(
-      id: idValue != null ? int.tryParse(idValue.toString()) : null,
+      id: idValue?.toString(),
       fullName: json['full_name'] as String,
       emailAddress: json['email_address'] as String,
     );

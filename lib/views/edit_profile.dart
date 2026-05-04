@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:firebase_auth/firebase_auth.dart' as fb_auth;
 import 'orders.dart';
-import '../models/user_model.dart';
 import '../services/api_service.dart';
+import '../models/user_model.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -118,9 +119,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Future<void> _saveProfile() async {
     final name = _nameController.text.trim();
     final email = _emailController.text.trim();
-    final userId = _orderController.currentUserId.value;
+    final fbUser = fb_auth.FirebaseAuth.instance.currentUser;
 
-    if (userId == 0) {
+    if (fbUser == null) {
       Get.snackbar(
         'Error',
         'Please log in to update your profile.',
@@ -142,35 +143,46 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     setState(() => _isLoading = true);
 
-    final apiService = ApiService();
-    final response = await apiService.updateUser(
-      userId: userId,
-      fullName: name,
-      email: email,
-    );
-
-    setState(() => _isLoading = false);
-
-    if (response['status'] == 'success') {
-      // Update local state in OrderController to reflect changes in UI
-      _orderController.setUser(
-        User(id: userId, fullName: name, emailAddress: email),
+    try {
+      final apiService = ApiService();
+      final result = await apiService.updateUser(
+        userId: fbUser.uid,
+        fullName: name,
+        email: email,
       );
 
-      Get.back();
-      Get.snackbar(
-        'Success',
-        'Profile updated successfully',
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
-      );
-    } else {
+      if (result['status'] == 'success') {
+        // Update local state in OrderController to reflect changes in UI
+        _orderController.setUser(
+          User(id: fbUser.uid, fullName: name, emailAddress: email),
+        );
+
+        if (mounted) {
+          Get.back();
+        }
+        Get.snackbar(
+          'Success',
+          'Profile updated successfully',
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
+      } else {
+        Get.snackbar(
+          'Error',
+          result['message'] ?? 'Update failed',
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+      }
+    } catch (e) {
       Get.snackbar(
         'Error',
-        response['message'] ?? 'Update failed',
+        e.toString(),
         backgroundColor: Colors.red,
         colorText: Colors.white,
       );
+    } finally {
+      setState(() => _isLoading = false);
     }
   }
 }

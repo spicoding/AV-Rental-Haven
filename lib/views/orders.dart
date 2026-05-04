@@ -14,7 +14,7 @@ class OrderController extends GetxController {
   var orders = <CartItem>[].obs;
   final ApiService _apiService = ApiService();
   var isLoading = false.obs;
-  var currentUserId = 0.obs; // Start as 0 (logged out)
+  var currentUserId = ''.obs; // Start as empty string
   var currentUser =
       Rxn<User>(); // Stores logged-in user details for the profile
   var rentalHistory =
@@ -35,7 +35,7 @@ class OrderController extends GetxController {
   }
 
   Future<void> fetchRentalHistory() async {
-    if (currentUserId.value == 0) return;
+    if (currentUserId.value.isEmpty) return;
     final history = await _apiService.fetchRentalHistory(currentUserId.value);
     rentalHistory.assignAll(history);
   }
@@ -44,7 +44,7 @@ class OrderController extends GetxController {
   // after a successful API response to update the profile UI
   void setUser(User user) {
     currentUser.value = user;
-    currentUserId.value = user.id ?? 0;
+    currentUserId.value = user.id ?? '';
     fetchRentalHistory();
   }
 
@@ -58,7 +58,7 @@ class OrderController extends GetxController {
         0.0;
 
     final product = Product(
-      productId: productData['name'].hashCode,
+      productId: productData['name'].hashCode.toString(),
       productName: productData['name'],
       unitPrice: price,
     );
@@ -211,9 +211,7 @@ class OrderController extends GetxController {
         return false;
       }
 
-      final int paymentId = int.parse(
-        savePaymentResponse['payment_id'].toString(),
-      );
+      final String paymentId = savePaymentResponse['payment_id'].toString();
 
       // 3. Map UI items for the order
       final databaseReadyOrders = orders.map((item) {
@@ -315,9 +313,7 @@ class OrderController extends GetxController {
         return false;
       }
 
-      final int paymentId = int.parse(
-        savePaymentResponse['payment_id'].toString(),
-      );
+      final String paymentId = savePaymentResponse['payment_id'].toString();
       final databaseReadyOrders = orders.map((item) {
         return {
           ...item.toOrderItemMap(),

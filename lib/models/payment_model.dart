@@ -1,6 +1,6 @@
 class PaymentModel {
-  final int? paymentId;
-  final int userId;
+  final String? paymentId;
+  final String userId;
   final String paymentMethod; // 'mpesa' or 'card'
   final double amount;
   final String
@@ -22,10 +22,8 @@ class PaymentModel {
 
   factory PaymentModel.fromJson(Map<String, dynamic> json) {
     return PaymentModel(
-      paymentId: json['payment_id'] != null
-          ? int.tryParse(json['payment_id'].toString())
-          : null,
-      userId: int.parse(json['user_id'].toString()),
+      paymentId: json['payment_id']?.toString() ?? json['id']?.toString(),
+      userId: json['user_id'].toString(),
       paymentMethod: json['payment_method'] as String,
       amount: double.parse(json['amount'].toString()),
       transactionReference: json['transaction_reference'] as String,
