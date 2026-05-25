@@ -1,6 +1,9 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb_auth;
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:image_picker/image_picker.dart';
 import 'orders.dart';
 import '../services/api_service.dart';
 import '../models/user_model.dart';
@@ -51,24 +54,39 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             const SizedBox(height: 20),
             Stack(
               children: [
-                const CircleAvatar(
+                CircleAvatar(
                   radius: 50,
-                  backgroundColor: Color.fromARGB(255, 230, 230, 230),
-                  child: Icon(Icons.person, size: 60, color: Colors.blueGrey),
+                  backgroundColor: const Color.fromARGB(255, 230, 230, 230),
+                  backgroundImage:
+                      _orderController.currentUser.value?.imageUrl != null
+                      ? NetworkImage(
+                          _orderController.currentUser.value!.imageUrl!,
+                        )
+                      : null,
+                  child: _orderController.currentUser.value?.imageUrl == null
+                      ? const Icon(
+                          Icons.person,
+                          size: 60,
+                          color: Colors.blueGrey,
+                        )
+                      : null,
                 ),
                 Positioned(
                   bottom: 0,
                   right: 0,
-                  child: Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: const BoxDecoration(
-                      color: Color.fromARGB(255, 255, 0, 0),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.camera_alt,
-                      color: Colors.white,
-                      size: 20,
+                  child: GestureDetector(
+                    onTap: _pickAndUploadImage,
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: const BoxDecoration(
+                        color: Color.fromARGB(255, 255, 0, 0),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.camera_alt,
+                        color: Colors.white,
+                        size: 20,
+                      ),
                     ),
                   ),
                 ),
@@ -116,6 +134,54 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
+  Future<void> _pickAndUploadImage() async {
+    final picker = ImagePicker();
+    final XFile? image = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 70,
+    );
+
+    if (image == null) return;
+
+    setState(() => _isLoading = true);
+    try {
+      final userId = fb_auth.FirebaseAuth.instance.currentUser?.uid;
+      if (userId == null) return;
+
+      final ref = FirebaseStorage.instance
+          .ref()
+          .child('user_avatars')
+          .child('$userId.jpg');
+      await ref.putFile(File(image.path));
+      final url = await ref.getDownloadURL();
+
+      // Update user document with image URL
+      await ApiService().updateUser(
+        userId: userId,
+        fullName: _nameController.text,
+        email: _emailController.text,
+        imageUrl: url,
+      );
+      // You would typically add an 'image_url' parameter to your updateUser method
+
+      // Update local state immediately
+      _orderController.setUser(
+        User(
+          id: userId,
+          fullName: _nameController.text,
+          emailAddress: _emailController.text,
+          imageUrl: url,
+        ),
+      );
+
+      Get.snackbar("Success", "Profile picture updated");
+    } catch (e) {
+      Get.snackbar("Error", "Failed to upload image: $e");
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
   Future<void> _saveProfile() async {
     final name = _nameController.text.trim();
     final email = _emailController.text.trim();
@@ -152,9 +218,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       );
 
       if (result['status'] == 'success') {
-        // Update local state in OrderController to reflect changes in UI
+        // Update local state with the existing image URL preserved
+        final currentUser = _orderController.currentUser.value;
         _orderController.setUser(
-          User(id: fbUser.uid, fullName: name, emailAddress: email),
+          User(
+            id: fbUser.uid,
+            fullName: name,
+            emailAddress: email,
+            imageUrl: currentUser?.imageUrl,
+          ),
         );
 
         if (mounted) {

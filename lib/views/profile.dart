@@ -23,11 +23,19 @@ class ProfileScreen extends StatelessWidget {
         child: Column(
           children: [
             const SizedBox(height: 30),
-            const CircleAvatar(
-              radius: 50,
-              backgroundColor: Color.fromARGB(255, 230, 230, 230),
-              child: Icon(Icons.person, size: 60, color: Colors.blueGrey),
-            ),
+            Obx(() {
+              final user = controller.currentUser.value;
+              return CircleAvatar(
+                radius: 50,
+                backgroundColor: const Color.fromARGB(255, 230, 230, 230),
+                backgroundImage: user?.imageUrl != null
+                    ? NetworkImage(user!.imageUrl!)
+                    : null,
+                child: user?.imageUrl == null
+                    ? const Icon(Icons.person, size: 60, color: Colors.blueGrey)
+                    : null,
+              );
+            }),
             const SizedBox(height: 16),
             Obx(
               () => Text(
@@ -57,12 +65,9 @@ class ProfileScreen extends StatelessWidget {
             _buildProfileOption(Icons.settings, 'Settings', () {}),
             const Divider(),
             _buildProfileOption(Icons.logout, 'Log Out', () async {
-              // Clear user session data on logout
               await FirebaseAuth.instance.signOut();
               controller.currentUser.value = null;
               controller.currentUserId.value = '';
-
-              // Navigate back to the login page
               Get.offAllNamed("/login");
             }, isDestructive: true),
           ],

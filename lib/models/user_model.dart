@@ -2,9 +2,15 @@ class User {
   final String? id; // Firebase UIDs are Strings
   final String fullName;
   final String emailAddress;
+  final String? imageUrl;
   // Password is not stored in the model after registration for security
 
-  User({this.id, required this.fullName, required this.emailAddress});
+  User({
+    this.id,
+    required this.fullName,
+    required this.emailAddress,
+    this.imageUrl,
+  });
 
   // Factory constructor to create a User from a JSON map (e.g., from API response)
   factory User.fromJson(Map<String, dynamic> json) {
@@ -13,6 +19,7 @@ class User {
       id: idValue?.toString(),
       fullName: json['full_name'] as String,
       emailAddress: json['email_address'] as String,
+      imageUrl: json['image_url'] as String?,
     );
   }
 
@@ -21,6 +28,7 @@ class User {
     return {
       'full_name': fullName,
       'email_address': emailAddress,
+      'image_url': imageUrl,
       // Password will be added separately for registration, not part of the model after hashing
     };
   }

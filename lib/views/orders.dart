@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../services/api_service.dart';
@@ -7,7 +9,6 @@ import '../models/user_model.dart';
 import '../models/payment_model.dart';
 import '../views/homescreen.dart';
 import 'checkout.dart';
-import 'dart:io';
 
 class OrderController extends GetxController {
   // Reactive list of items in the cart

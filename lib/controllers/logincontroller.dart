@@ -20,7 +20,7 @@ class LoginController extends GetxController {
     // 1. Hardcoded Admin Bypass (Optional)
     if (email == "admin" && password == "34493370") {
       final adminUser = User(
-        id: 999,
+        id: "admin_system_uid",
         fullName: "System Admin",
         emailAddress: "admin@avhaven.com",
       );
@@ -37,14 +37,8 @@ class LoginController extends GetxController {
 
     if (response['status'] == 'success') {
       // Capture full user details from the response
-      try {
-        final user = User.fromJson(response);
-        _orderController.setUser(user);
-      } catch (e) {
-        print("Error parsing user data: $e");
-        Get.snackbar("Error", "Failed to process user data from server");
-        return;
-      }
+      final user = response['user'] as User;
+      _orderController.setUser(user);
 
       Get.snackbar("Success", "Welcome back!");
       Get.offAll(() => const HomeScreen());
@@ -58,7 +52,7 @@ class LoginController extends GetxController {
     }
   }
 
-  togglePassword() {
+  void togglePassword() {
     isObscured.value = !isObscured.value;
   }
 }

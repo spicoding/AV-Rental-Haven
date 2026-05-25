@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart' as fb_auth;
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -33,6 +35,7 @@ class ApiService {
             id: credential.user!.uid,
             fullName: fullName,
             emailAddress: email,
+            imageUrl: null,
           ),
         };
       }
@@ -59,6 +62,7 @@ class ApiService {
           id: credential.user!.uid,
           fullName: userData['full_name'],
           emailAddress: userData['email_address'],
+          imageUrl: userData['image_url'],
         ),
       };
     } catch (e) {
@@ -70,12 +74,16 @@ class ApiService {
     required String userId,
     required String fullName,
     required String email,
+    String? imageUrl,
   }) async {
     try {
-      await _db.collection('users').doc(userId).update({
+      final Map<String, dynamic> updateData = {
         'full_name': fullName,
         'email_address': email,
-      });
+      };
+      if (imageUrl != null) updateData['image_url'] = imageUrl;
+
+      await _db.collection('users').doc(userId).update(updateData);
 
       if (_auth.currentUser?.email != email) {
         await _auth.currentUser?.updateEmail(email);
@@ -97,6 +105,7 @@ class ApiService {
         return Product.fromJson(data);
       }).toList();
     } catch (e) {
+      // ignore: avoid_print
       print("Exception during fetchProducts: $e");
       return [];
     }

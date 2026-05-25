@@ -1,8 +1,9 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'orders.dart';
 import '../models/product_model.dart';
-import 'dart:io';
 
 class ProductsScreen extends StatelessWidget {
   ProductsScreen({super.key});

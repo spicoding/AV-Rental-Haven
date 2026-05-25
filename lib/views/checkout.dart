@@ -1,7 +1,8 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'orders.dart';
-import 'auth_screen.dart';
 import '../models/cart_item_model.dart'; // Import the CartItem model
 
 class CheckoutScreen extends StatefulWidget {
